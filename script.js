@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatNotification = document.querySelector('.chat-notification');
 
     // ★ ここにお客様が作成したGASのWebアプリURLを設定します ★
-    const CHATBOT_API_URL = 'https://script.google.com/macros/s/AKfycby-T72muk7E3qacXOflnXPghcNdqkU3Cxj1y11HcyraC8OmBESvCosJQtpaL0FBUZcc/exec';
+    const CHATBOT_API_URL = 'https://script.google.com/macros/s/AKfycby0wtXjxBWdJHlrsvlI4k3nmxiAh7-XWV8gXrg6Iz2hwMT6B7DMeW3ngldSa5RbXGN6/exec';
 
     // Open/Close Chat
     function toggleChat() {
