@@ -247,6 +247,52 @@
         </div>
     </footer>
 
+    <!-- Chatbot Widget -->
+    <div id="chat-widget">
+        <!-- Chat Icon -->
+        <button id="chat-toggle-btn" class="chat-toggle-btn" aria-label="Open chat">
+            <i class="fas fa-comment-dots"></i>
+            <span class="chat-notification">1</span>
+        </button>
+
+        <!-- Chat Window -->
+        <div id="chat-window" class="chat-window hidden">
+            <div class="chat-header">
+                <div class="chat-header-info">
+                    <img src="hero.png" alt="Bot avatar" class="chat-avatar"
+                        onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\'><rect width=\'40\' height=\'40\' fill=\'#9CAF88\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'20\' fill=\'white\' text-anchor=\'middle\' dy=\'.3em\'>C</text></svg>'">
+                    <div>
+                        <h4>chainonjoli サポート</h4>
+                        <p class="chat-status">オンライン</p>
+                    </div>
+                </div>
+                <button id="chat-close-btn" class="chat-close-btn" aria-label="Close chat">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div id="chat-messages" class="chat-messages">
+                <div class="message bot-message">
+                    <div class="message-content">
+                        こんにちは！伊勢市のエステサロン「chainonjoli」です🌿<br>
+                        何かご不明な点や、ご相談はございますか？<br>
+                        （例：「予約したい」「メニューが知りたい」「駐車場は？」など）
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <form id="chat-form" class="chat-form">
+                    <input type="text" id="chat-input" class="chat-input" placeholder="メッセージを入力..." required
+                        autocomplete="off">
+                    <button type="submit" id="chat-send-btn" class="chat-send-btn" aria-label="Send message" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 

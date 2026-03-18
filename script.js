@@ -157,4 +157,137 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // --- Chatbot Widget Logic ---
+    const chatToggleBtn = document.getElementById('chat-toggle-btn');
+    const chatWindow = document.getElementById('chat-window');
+    const chatCloseBtn = document.getElementById('chat-close-btn');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const chatSendBtn = document.getElementById('chat-send-btn');
+    const chatMessages = document.getElementById('chat-messages');
+    const chatNotification = document.querySelector('.chat-notification');
+
+    // ★ ここにお客様が作成したGASのWebアプリURLを設定します ★
+    const CHATBOT_API_URL = 'https://script.google.com/macros/s/AKfycby-T72muk7E3qacXOflnXPghcNdqkU3Cxj1y11HcyraC8OmBESvCosJQtpaL0FBUZcc/exec';
+
+    // Open/Close Chat
+    function toggleChat() {
+        chatWindow.classList.toggle('hidden');
+        if (!chatWindow.classList.contains('hidden')) {
+            // Hide notification badge when opened
+            if (chatNotification) chatNotification.style.display = 'none';
+            chatInput.focus();
+        }
+    }
+
+    if (chatToggleBtn) chatToggleBtn.addEventListener('click', toggleChat);
+    if (chatCloseBtn) chatCloseBtn.addEventListener('click', () => chatWindow.classList.add('hidden'));
+
+    // Enable/Disable send button
+    if (chatInput) {
+        chatInput.addEventListener('input', () => {
+            chatSendBtn.disabled = chatInput.value.trim() === '';
+        });
+    }
+
+    // Add message to chat UI
+    function addMessage(text, sender) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}-message`;
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        // Simple HTML escape and line break conversion
+        contentDiv.innerHTML = text.replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;")
+            .replace(/\n/g, "<br>");
+
+        messageDiv.appendChild(contentDiv);
+        chatMessages.appendChild(messageDiv);
+
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Show typing indicator
+    function showTyping() {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'typing-indicator';
+        typingDiv.id = 'typing-indicator';
+
+        for (let i = 0; i < 3; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'typing-dot';
+            typingDiv.appendChild(dot);
+        }
+
+        chatMessages.appendChild(typingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Remove typing indicator
+    function removeTyping() {
+        const indicator = document.getElementById('typing-indicator');
+        if (indicator) {
+            indicator.remove();
+        }
+    }
+
+    // Handle form submission
+    if (chatForm) {
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const messageText = chatInput.value.trim();
+            if (!messageText) return;
+
+            // 1. Add user message
+            addMessage(messageText, 'user');
+
+            // Clear input & disable button
+            chatInput.value = '';
+            chatSendBtn.disabled = true;
+
+            // 2. Show typing indicator
+            showTyping();
+
+            // 3. Send to GAS
+            try {
+                if (CHATBOT_API_URL === 'YOUR_GAS_WEBAPP_URL_HERE') {
+                    // Simulate a response if URL is not set yet
+                    setTimeout(() => {
+                        removeTyping();
+                        addMessage('現在、チャットシステムを準備中です。\nご予約・お問い合わせは「公式LINE」またはご予約フォームからお願いいたします。', 'bot');
+                    }, 1500);
+                    return;
+                }
+
+                const response = await fetch(CHATBOT_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain', // application/jsonだとCORSエラーになるため
+                    },
+                    body: JSON.stringify({ message: messageText })
+                });
+
+                const data = await response.json();
+
+                removeTyping();
+                if (data && data.reply) {
+                    addMessage(data.reply, 'bot');
+                } else {
+                    addMessage('申し訳ありません、メッセージの処理中にエラーが発生しました。', 'bot');
+                }
+
+            } catch (error) {
+                console.error('Chat Error:', error);
+                removeTyping();
+                addMessage('通信エラーが発生しました。時間をおいて再度お試しいただくか、LINEからお問い合わせください。', 'bot');
+            }
+        });
+    }
 });
