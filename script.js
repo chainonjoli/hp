@@ -167,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatSendBtn = document.getElementById('chat-send-btn');
     const chatMessages = document.getElementById('chat-messages');
     const chatNotification = document.querySelector('.chat-notification');
+    const quickActions = document.getElementById('chat-quick-actions');
 
     // ★ ここにお客様が作成したGASのWebアプリURLを設定します ★
     const CHATBOT_API_URL = 'https://script.google.com/macros/s/AKfycby0wtXjxBWdJHlrsvlI4k3nmxiAh7-XWV8gXrg6Iz2hwMT6B7DMeW3ngldSa5RbXGN6/exec';
@@ -192,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Add message to chat UI
-    function addMessage(text, sender) {
+    function addMessage(text, sender, options = {}) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${sender}-message`;
 
@@ -207,6 +208,17 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/\n/g, "<br>");
 
         messageDiv.appendChild(contentDiv);
+
+        if (options.lineLink) {
+            const lineLink = document.createElement('a');
+            lineLink.className = 'chat-line-link';
+            lineLink.href = 'https://lin.ee/1ThSpsd';
+            lineLink.target = '_blank';
+            lineLink.rel = 'noopener';
+            lineLink.textContent = '公式LINEでオーナーに相談';
+            contentDiv.appendChild(document.createElement('br'));
+            contentDiv.appendChild(lineLink);
+        }
         chatMessages.appendChild(messageDiv);
 
         // Scroll to bottom
@@ -237,6 +249,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    const urgentPatterns = [
+        /息苦し|呼吸.*苦し|のど.*違和感|意識.*(遠|もうろう)/,
+        /強い.*(腫れ|痛み|かゆみ)|急.*悪化|急に.*広が/,
+        /目.*(腫れ|痛み)|口.*周り.*腫れ|じんましん|水ぶくれ|ただれ/,
+        /出血.*(止まら|続)|膿.*広が/
+    ];
+
+    const stopUsePatterns = [
+        /化粧水.*(しみ|ヒリ)|化粧品.*(しみ|ヒリ|赤み|かゆみ)/,
+        /使い始め.*(赤|かゆ|腫)|新しい.*化粧品.*(赤|かゆ|痛)/
+    ];
+
+    function safetyReply(message) {
+        if (urgentPatterns.some(pattern => pattern.test(message))) {
+            return {
+                text: 'その症状は、チャットだけで判断せず、早めに医療機関へ相談してください。息苦しさ、のどの違和感、意識が遠のく感じがある場合は、すぐに救急へ連絡してください。\n\n使用中の化粧品がある場合はいったん使用を止め、商品名や使用開始日を控えておきましょう。',
+                lineLink: false
+            };
+        }
+        if (stopUsePatterns.some(pattern => pattern.test(message))) {
+            return {
+                text: 'まず、症状が出た化粧品の使用をいったん止めてください。こすったり、別の商品を重ねたりせず、肌を休ませましょう。\n\n赤み・腫れ・かゆみ・痛みが続く、または強くなる場合は皮膚科へご相談ください。商品名、使った日時、症状が出た時刻をメモしておくと相談しやすくなります。',
+                lineLink: true
+            };
+        }
+        return null;
+    }
+
+    function ownerHandoff() {
+        addMessage('もちろんです。今の症状や気になることを短く入力してください。内容を整理したうえで、公式LINEからオーナーへ相談できます。\n\n例：3日前から鼻の下に赤い吹き出物があり、少し痛みます。新しく使い始めた化粧品はありません。', 'bot', { lineLink: true });
+    }
+
+    if (quickActions) {
+        quickActions.addEventListener('click', (event) => {
+            const button = event.target.closest('button');
+            if (!button) return;
+            if (button.dataset.action === 'owner') {
+                ownerHandoff();
+                return;
+            }
+            chatInput.value = button.dataset.message || '';
+            chatSendBtn.disabled = !chatInput.value;
+            chatForm.requestSubmit();
+        });
+    }
+
     // Handle form submission
     if (chatForm) {
         chatForm.addEventListener('submit', async (e) => {
@@ -251,6 +309,17 @@ document.addEventListener('DOMContentLoaded', () => {
             // Clear input & disable button
             chatInput.value = '';
             chatSendBtn.disabled = true;
+
+            const localSafetyReply = safetyReply(messageText);
+            if (localSafetyReply) {
+                setTimeout(() => addMessage(localSafetyReply.text, 'bot', localSafetyReply), 350);
+                return;
+            }
+
+            if (/オーナー.*相談|人に相談|直接相談/.test(messageText)) {
+                setTimeout(ownerHandoff, 350);
+                return;
+            }
 
             // 2. Show typing indicator
             showTyping();
@@ -271,14 +340,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     headers: {
                         'Content-Type': 'text/plain', // application/jsonだとCORSエラーになるため
                     },
-                    body: JSON.stringify({ message: messageText })
+                    body: JSON.stringify({
+                        message: messageText,
+                        context: '匿名の肌相談。診断・治療の断定は禁止。結論→今できること→確認質問→必要なら相談先の順で、短くやさしく回答する。',
+                        salon: 'chainonjoli（シャンソン化粧品特約店）'
+                    })
                 });
 
                 const data = await response.json();
 
                 removeTyping();
                 if (data && data.reply) {
-                    addMessage(data.reply, 'bot');
+                    addMessage(data.reply.replace(/あづさ/g, 'オーナー'), 'bot');
                 } else {
                     addMessage('申し訳ありません、メッセージの処理中にエラーが発生しました。', 'bot');
                 }

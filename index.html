@@ -260,8 +260,8 @@
                     <img src="hero.png" alt="Bot avatar" class="chat-avatar"
                         onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\'><rect width=\'40\' height=\'40\' fill=\'#9CAF88\'/><text x=\'50%\' y=\'50%\' font-family=\'sans-serif\' font-size=\'20\' fill=\'white\' text-anchor=\'middle\' dy=\'.3em\'>C</text></svg>'">
                     <div>
-                        <h4>chainonjoli サポート</h4>
-                        <p class="chat-status">オンライン</p>
+                        <h4>肌のお守りチャット</h4>
+                        <p class="chat-status">匿名で相談できます</p>
                     </div>
                 </div>
                 <button id="chat-close-btn" class="chat-close-btn" aria-label="Close chat">
@@ -272,10 +272,20 @@
             <div id="chat-messages" class="chat-messages">
                 <div class="message bot-message">
                     <div class="message-content">
-                        こんにちは！伊勢市のエステサロン「chainonjoli」です🌿<br>
-                        何かご不明な点や、ご相談はございますか？<br>
-                        （例：「予約したい」「メニューが知りたい」「駐車場は？」など）
+                        こんにちは。肌のお守りチャットです🌿<br>
+                        お名前を入力せずに相談できます。<br>
+                        「こんなこと聞いていいのかな？」という小さな疑問も、気軽に教えてください。
                     </div>
+                </div>
+                <div id="chat-quick-actions" class="chat-quick-actions" aria-label="相談内容を選ぶ">
+                    <button type="button" data-message="ニキビ・吹き出物について相談したい">ニキビ・吹き出物</button>
+                    <button type="button" data-message="シミ・くすみについて相談したい">シミ・くすみ</button>
+                    <button type="button" data-message="シワ・たるみについて相談したい">シワ・たるみ</button>
+                    <button type="button" data-message="乾燥・つっぱりについて相談したい">乾燥・つっぱり</button>
+                    <button type="button" data-message="赤み・かゆみについて相談したい">赤み・かゆみ</button>
+                    <button type="button" data-message="化粧品の使い方を知りたい">化粧品の使い方</button>
+                    <button type="button" data-message="うまく説明できないので、一緒に整理してほしい">うまく説明できない</button>
+                    <button type="button" data-action="owner">オーナーに相談したい</button>
                 </div>
             </div>
 
@@ -287,6 +297,7 @@
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </form>
+                <p class="chat-disclaimer">診断・治療は行いません。強い症状や急な悪化は医療機関へご相談ください。</p>
             </div>
         </div>
     </div>

@@ -764,6 +764,58 @@ footer {
     border-top: 1px solid var(--secondary-color);
 }
 
+.chat-quick-actions {
+    padding: 0 1.1rem 1rem;
+    background: var(--bg-color);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+}
+
+.chat-quick-actions button {
+    border: 1px solid var(--secondary-color);
+    background: var(--white);
+    color: var(--text-color);
+    border-radius: 999px;
+    padding: 0.55rem 0.7rem;
+    font-family: inherit;
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.chat-quick-actions button:hover,
+.chat-quick-actions button:focus-visible {
+    background: var(--secondary-color);
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+.chat-quick-actions button[data-action="owner"] {
+    grid-column: 1 / -1;
+    background: var(--primary-color);
+    color: var(--white);
+}
+
+.chat-disclaimer {
+    margin: 0.55rem 0 0;
+    font-size: 0.64rem;
+    line-height: 1.45;
+    color: var(--light-text);
+    text-align: center;
+}
+
+.chat-line-link {
+    display: inline-block;
+    margin-top: 0.65rem;
+    padding: 0.55rem 0.9rem;
+    border-radius: 999px;
+    background: #06c755;
+    color: #fff !important;
+    text-decoration: none;
+    font-weight: 500;
+}
+
 .chat-form {
     display: flex;
     align-items: center;
