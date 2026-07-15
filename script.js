@@ -185,6 +185,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (chatToggleBtn) chatToggleBtn.addEventListener('click', toggleChat);
     if (chatCloseBtn) chatCloseBtn.addEventListener('click', () => chatWindow.classList.add('hidden'));
 
+    // 公式LINEの「肌のお守り相談」から来たときはチャットを自動で開く
+    const pageParams = new URLSearchParams(window.location.search);
+    if (pageParams.get('chat') === 'open' && chatWindow) {
+        chatWindow.classList.remove('hidden');
+        if (chatNotification) chatNotification.style.display = 'none';
+        setTimeout(() => chatInput && chatInput.focus(), 300);
+    }
+
     // Enable/Disable send button
     if (chatInput) {
         chatInput.addEventListener('input', () => {

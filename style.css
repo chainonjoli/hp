@@ -890,3 +890,13 @@ footer {
         z-index: 100000;
     }
 }
+/* Existing customer support hub */
+.member-support { background: #fffaf8; }
+.support-lead { max-width: 680px; margin: 1.5rem auto 0; text-align: center; color: var(--light-text); }
+.support-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 920px; margin: 3rem auto 0; }
+.support-card { min-height: 180px; padding: 28px 18px; border: 1px solid #dec3c8; border-radius: 18px; background: #fff; color: var(--text-color); text-decoration: none; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 8px 24px rgba(112,77,83,.06); transition: .2s ease; }
+.support-card:hover { transform: translateY(-3px); border-color: #b87886; }
+.support-card i { font-size: 1.8rem; color: #b87886; }
+.support-card strong { font-size: 1.05rem; }
+.support-card span { font-size: .84rem; color: var(--light-text); }
+@media (max-width: 760px) { .support-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } .support-card { min-height: 150px; padding: 20px 10px; } }

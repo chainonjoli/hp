@@ -1,0 +1,1 @@
+document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('[data-copy]').forEach(btn=>btn.addEventListener('click',async()=>{const text=document.getElementById(btn.dataset.copy).innerText;try{await navigator.clipboard.writeText(text);btn.textContent='コピーしました';setTimeout(()=>btn.textContent='この文章をコピー',1800)}catch(e){alert('文章を長押ししてコピーしてください')}}))});
