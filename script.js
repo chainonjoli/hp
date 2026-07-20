@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (options.lineLink) {
             const lineLink = document.createElement('a');
             lineLink.className = 'chat-line-link';
-            lineLink.href = 'https://lin.ee/1ThSpsd';
+            lineLink.href = 'https://lin.ee/O1jhrwd';
             lineLink.target = '_blank';
             lineLink.rel = 'noopener';
             lineLink.textContent = '公式LINEでオーナーに相談';
