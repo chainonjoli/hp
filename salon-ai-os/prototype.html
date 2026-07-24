@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Salon AI OS — プロトタイプ</title>
+<meta name="description" content="AIスタッフが24時間働くサロンを実現する Salon AI OS のクリック可能プロトタイプ">
+</head>
+<body>
+<style>
+/* ============================================================
+   Salon AI OS — Design Tokens
+   ============================================================ */
+:root{
+  --paper:#FAF8F6;          /* 温白 */
+  --card:#FFFFFF;
+  --ink:#37322E;            /* 墨ブラウン */
+  --muted:#8A8178;          /* 温グレー */
+  --faint:#B5ACA3;
+  --accent:#A88B7D;         /* くすみローズベージュ */
+  --accent-deep:#8F7264;
+  --accent-soft:#F1E9E4;    /* 淡ブラッシュ */
+  --sage:#9CAF88;           /* セージ（補助） */
+  --sage-soft:#EEF2E9;
+  --line:#E9E2DB;           /* ヘアライン */
+  --ok:#7A9B6D;
+  --warn:#C2917B;
+  --shadow:0 1px 2px rgba(55,50,46,.04), 0 8px 24px rgba(55,50,46,.06);
+  --shadow-lg:0 2px 4px rgba(55,50,46,.05), 0 16px 48px rgba(55,50,46,.10);
+  --r:20px;
+  --r-sm:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#1E1B18; --card:#282420; --ink:#EDE7E1; --muted:#A79C91;
+    --faint:#7A7168; --accent:#C2A392; --accent-deep:#D4B8A8;
+    --accent-soft:#38302B; --sage:#A9BC96; --sage-soft:#2C3126;
+    --line:#3A342E; --ok:#93B285; --warn:#D0A58F;
+    --shadow:0 1px 2px rgba(0,0,0,.2), 0 8px 24px rgba(0,0,0,.25);
+    --shadow-lg:0 2px 4px rgba(0,0,0,.25), 0 16px 48px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#1E1B18; --card:#282420; --ink:#EDE7E1; --muted:#A79C91;
+  --faint:#7A7168; --accent:#C2A392; --accent-deep:#D4B8A8;
+  --accent-soft:#38302B; --sage:#A9BC96; --sage-soft:#2C3126;
+  --line:#3A342E; --ok:#93B285; --warn:#D0A58F;
+  --shadow:0 1px 2px rgba(0,0,0,.2), 0 8px 24px rgba(0,0,0,.25);
+  --shadow-lg:0 2px 4px rgba(0,0,0,.25), 0 16px 48px rgba(0,0,0,.35);
+}
+:root[data-theme="light"]{
+  --paper:#FAF8F6; --card:#FFFFFF; --ink:#37322E; --muted:#8A8178;
+  --faint:#B5ACA3; --accent:#A88B7D; --accent-deep:#8F7264;
+  --accent-soft:#F1E9E4; --sage:#9CAF88; --sage-soft:#EEF2E9;
+  --line:#E9E2DB; --ok:#7A9B6D; --warn:#C2917B;
+  --shadow:0 1px 2px rgba(55,50,46,.04), 0 8px 24px rgba(55,50,46,.06);
+  --shadow-lg:0 2px 4px rgba(55,50,46,.05), 0 16px 48px rgba(55,50,46,.10);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Segoe UI",Meiryo,sans-serif;
+  background:var(--paper); color:var(--ink);
+  line-height:1.75; font-size:15px;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,textarea,select{font-family:inherit;font-size:inherit;color:var(--ink)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible{
+  outline:2px solid var(--accent); outline-offset:2px; border-radius:6px;
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+.num{font-variant-numeric:tabular-nums}
+
+/* ============================================================
+   OS chrome（プロトタイプ切替バー）
+   ============================================================ */
+.os-bar{
+  position:sticky; top:0; z-index:100;
+  display:flex; align-items:center; gap:16px;
+  padding:14px clamp(16px,4vw,32px);
+  background:color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.wordmark{font-weight:300; letter-spacing:.22em; font-size:15px; white-space:nowrap}
+.wordmark b{font-weight:600; letter-spacing:.22em}
+.tenant{font-size:11.5px; color:var(--muted); letter-spacing:.08em; white-space:nowrap}
+.tenant::before{content:""; display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--sage); margin-right:6px; vertical-align:1px}
+.mode-switch{
+  margin-left:auto; display:flex; gap:2px; padding:3px;
+  background:var(--accent-soft); border-radius:999px;
+}
+.mode-switch button{
+  padding:7px 18px; border-radius:999px; font-size:13px; font-weight:500;
+  color:var(--muted); transition:all .25s ease; white-space:nowrap;
+}
+.mode-switch button.on{background:var(--card); color:var(--ink); box-shadow:var(--shadow)}
+@media (max-width:560px){
+  .tenant{display:none}
+  .os-bar{gap:10px}
+  .wordmark{font-size:13px}
+  .mode-switch button{padding:6px 13px; font-size:12px}
+}
+
+/* ============================================================
+   Customer app — phone frame
+   ============================================================ */
+.stage{display:none}
+.stage.on{display:block}
+.phone-wrap{display:flex; justify-content:center; padding:clamp(0px,3vw,48px) 0 64px}
+.phone{
+  width:min(100vw,393px); min-height:min(100dvh - 120px, 780px);
+  background:var(--paper); position:relative;
+  display:flex; flex-direction:column;
+}
+@media (min-width:520px){
+  .phone{
+    border:1px solid var(--line); border-radius:44px; box-shadow:var(--shadow-lg);
+    overflow:hidden; height:780px; min-height:0; background:var(--paper);
+  }
+}
+.app-body{flex:1; overflow-y:auto; display:flex; flex-direction:column; scroll-behavior:smooth}
+
+/* customer screens */
+.scr{display:none; flex:1; flex-direction:column; animation:fadein .3s ease}
+.scr.on{display:flex}
+@keyframes fadein{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
+
+.c-head{
+  display:flex; align-items:center; gap:10px;
+  padding:18px 20px 8px;
+}
+.c-head .back{
+  width:34px; height:34px; border-radius:50%; background:var(--card);
+  box-shadow:var(--shadow); display:grid; place-items:center; font-size:16px; flex:none;
+}
+.c-head h2{font-size:16px; font-weight:600; letter-spacing:.04em}
+.c-head .sub{font-size:11.5px; color:var(--muted); letter-spacing:.06em}
+
+/* home */
+.home-hero{padding:56px 28px 8px; text-align:center}
+.home-hero .salon-name{font-size:13px; letter-spacing:.3em; color:var(--muted); text-transform:lowercase}
+.home-hero h1{
+  font-size:23px; font-weight:500; letter-spacing:.1em; line-height:1.9;
+  margin-top:14px; text-wrap:balance;
+}
+.home-hero p{font-size:12.5px; color:var(--muted); margin-top:10px; letter-spacing:.05em}
+.ai-status{
+  display:inline-flex; align-items:center; gap:8px; margin-top:20px;
+  font-size:11.5px; color:var(--sage); letter-spacing:.1em;
+  padding:6px 14px; border:1px solid var(--sage-soft); background:var(--sage-soft); border-radius:999px;
+}
+.ai-status .dot{width:7px;height:7px;border-radius:50%;background:var(--sage); animation:pulse 2.4s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.home-menu{display:flex; flex-direction:column; gap:14px; padding:32px 24px 28px; margin-top:auto}
+.home-btn{
+  display:flex; align-items:center; gap:16px; text-align:left;
+  background:var(--card); border-radius:var(--r); padding:18px 20px;
+  box-shadow:var(--shadow); transition:transform .2s ease, box-shadow .2s ease;
+}
+.home-btn:active{transform:scale(.98)}
+.home-btn .ic{
+  width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:20px;flex:none;
+  background:var(--accent-soft);
+}
+.home-btn.alt .ic{background:var(--sage-soft)}
+.home-btn .t{font-weight:600; font-size:14.5px; letter-spacing:.03em}
+.home-btn .d{font-size:11.5px; color:var(--muted); margin-top:1px}
+.home-btn .arrow{margin-left:auto; color:var(--faint); font-size:15px}
+.home-foot{padding:0 24px 28px; text-align:center; font-size:10.5px; color:var(--faint); letter-spacing:.08em}
+
+/* chat */
+.chat-log{flex:1; overflow-y:auto; padding:14px 18px 8px; display:flex; flex-direction:column; gap:12px}
+.msg{max-width:82%; padding:12px 16px; border-radius:18px; font-size:13.5px; line-height:1.8; white-space:pre-line; animation:fadein .25s ease}
+.msg.ai{align-self:flex-start; background:var(--card); box-shadow:var(--shadow); border-bottom-left-radius:6px}
+.msg.me{align-self:flex-end; background:var(--accent); color:#fff; border-bottom-right-radius:6px}
+:root[data-theme="dark"] .msg.me{color:#241E1A}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .msg.me{color:#241E1A} }
+.msg .msg-cta{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
+.msg .msg-cta button{
+  font-size:12px; font-weight:600; padding:8px 14px; border-radius:999px;
+  background:var(--accent-soft); color:var(--accent-deep); letter-spacing:.03em;
+}
+.typing{align-self:flex-start; display:flex; gap:5px; padding:14px 18px; background:var(--card); border-radius:18px; border-bottom-left-radius:6px; box-shadow:var(--shadow)}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--faint);animation:tp 1.2s ease infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes tp{0%,60%,100%{transform:none;opacity:.4}30%{transform:translateY(-4px);opacity:1}}
+.chips{display:flex; gap:8px; overflow-x:auto; padding:10px 18px; scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips button{
+  flex:none; font-size:12.5px; padding:9px 15px; border-radius:999px;
+  background:var(--card); box-shadow:var(--shadow); color:var(--ink); letter-spacing:.02em;
+}
+.chat-input{display:flex; gap:10px; padding:10px 18px calc(18px + env(safe-area-inset-bottom))}
+.chat-input input{
+  flex:1; border:1px solid var(--line); background:var(--card); border-radius:999px;
+  padding:11px 18px; font-size:13.5px; outline:none;
+}
+.chat-input input:focus{border-color:var(--accent)}
+.chat-input button{
+  width:44px;height:44px;border-radius:50%;background:var(--accent);color:#fff;font-size:16px;flex:none;
+}
+
+/* counselor */
+.step-wrap{padding:8px 22px 24px; flex:1; display:flex; flex-direction:column}
+.step-label{font-size:11px; letter-spacing:.18em; color:var(--accent); font-weight:600; margin:10px 0 4px}
+.step-q{font-size:17px; font-weight:600; letter-spacing:.04em; line-height:1.7; text-wrap:balance}
+.step-note{font-size:11.5px; color:var(--muted); margin-top:6px}
+.concern-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px}
+.concern-grid button{
+  background:var(--card); border-radius:var(--r-sm); padding:16px 8px; text-align:center;
+  box-shadow:var(--shadow); font-size:13.5px; font-weight:500; letter-spacing:.05em;
+  transition:transform .15s ease;
+}
+.concern-grid button:active{transform:scale(.96)}
+.opt-list{display:flex; flex-direction:column; gap:10px; margin-top:20px}
+.opt-list button{
+  background:var(--card); border-radius:var(--r-sm); padding:15px 18px; text-align:left;
+  box-shadow:var(--shadow); font-size:13.5px; letter-spacing:.03em;
+}
+.result-card{background:var(--card); border-radius:var(--r); box-shadow:var(--shadow); padding:20px; margin-top:16px}
+.result-card h3{font-size:12px; letter-spacing:.16em; color:var(--accent); font-weight:600; margin-bottom:8px}
+.result-card p{font-size:13.5px; line-height:1.85}
+.result-card .price{font-weight:600; letter-spacing:.02em}
+.disclaimer{font-size:10.5px; color:var(--faint); line-height:1.7; margin-top:16px; padding:0 4px}
+.cta-col{display:flex; flex-direction:column; gap:10px; margin-top:18px}
+.btn-primary{
+  display:block; width:100%; text-align:center; background:var(--accent); color:#fff;
+  font-weight:600; font-size:14.5px; letter-spacing:.08em; padding:16px; border-radius:999px;
+  box-shadow:var(--shadow); transition:transform .15s ease;
+}
+:root[data-theme="dark"] .btn-primary{color:#241E1A}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .btn-primary{color:#241E1A} }
+.btn-primary:active{transform:scale(.98)}
+.btn-line{background:#06C755; color:#fff !important}
+.btn-ghost{
+  display:block; width:100%; text-align:center; color:var(--accent-deep);
+  font-weight:600; font-size:13.5px; letter-spacing:.06em; padding:14px; border-radius:999px;
+  background:var(--accent-soft);
+}
+
+/* booking */
+.slot-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:16px}
+.slot-grid button{
+  background:var(--card); border-radius:12px; padding:12px 4px; text-align:center;
+  box-shadow:var(--shadow); font-size:12.5px; letter-spacing:.02em;
+}
+.slot-grid button.sel{background:var(--accent); color:#fff; font-weight:600}
+:root[data-theme="dark"] .slot-grid button.sel{color:#241E1A}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .slot-grid button.sel{color:#241E1A} }
+.slot-grid button:disabled{opacity:.35; cursor:default}
+.day-row{display:flex; gap:9px; overflow-x:auto; margin-top:16px; padding-bottom:4px; scrollbar-width:none}
+.day-row::-webkit-scrollbar{display:none}
+.day-row button{
+  flex:none; width:64px; background:var(--card); border-radius:14px; padding:12px 0;
+  box-shadow:var(--shadow); text-align:center;
+}
+.day-row button.sel{background:var(--accent); color:#fff}
+:root[data-theme="dark"] .day-row button.sel{color:#241E1A}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .day-row button.sel{color:#241E1A} }
+.day-row .dw{font-size:10.5px; opacity:.7}
+.day-row .dd{font-size:16px; font-weight:600}
+.confirm-box{background:var(--card); border-radius:var(--r); box-shadow:var(--shadow); padding:6px 20px; margin-top:18px}
+.confirm-box .row{display:flex; justify-content:space-between; gap:12px; padding:13px 0; border-bottom:1px solid var(--line); font-size:13.5px}
+.confirm-box .row:last-child{border-bottom:none}
+.confirm-box .k{color:var(--muted); flex:none}
+.done-wrap{flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:32px}
+.done-mark{
+  width:72px;height:72px;border-radius:50%;background:var(--sage-soft);color:var(--sage);
+  display:grid;place-items:center;font-size:30px; margin-bottom:22px;
+}
+.done-wrap h2{font-size:19px; font-weight:600; letter-spacing:.08em}
+.done-wrap p{font-size:13px; color:var(--muted); margin-top:10px; line-height:1.9}
+
+/* ============================================================
+   Admin app
+   ============================================================ */
+.admin{display:flex; min-height:calc(100dvh - 61px)}
+.a-nav{
+  width:224px; flex:none; padding:28px 14px; border-right:1px solid var(--line);
+  display:flex; flex-direction:column; gap:4px; position:sticky; top:61px; height:calc(100dvh - 61px);
+}
+.a-nav button{
+  display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:12px;
+  font-size:13.5px; color:var(--muted); text-align:left; letter-spacing:.03em; transition:all .2s ease;
+}
+.a-nav button .ic{font-size:17px; width:22px; text-align:center}
+.a-nav button.on{background:var(--accent-soft); color:var(--ink); font-weight:600}
+.a-nav .nav-sec{font-size:10px; letter-spacing:.2em; color:var(--faint); padding:18px 14px 6px; font-weight:600}
+.a-main{flex:1; padding:32px clamp(18px,4vw,44px) 96px; max-width:1060px}
+.a-scr{display:none; animation:fadein .3s ease}
+.a-scr.on{display:block}
+.a-title{font-size:21px; font-weight:600; letter-spacing:.06em}
+.a-sub{font-size:12.5px; color:var(--muted); margin-top:4px; letter-spacing:.03em}
+.a-head-row{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:26px}
+
+.phase-pill{
+  display:inline-block; font-size:10px; font-weight:600; letter-spacing:.1em;
+  padding:3px 9px; border-radius:999px; vertical-align:2px; margin-left:8px;
+  background:var(--sage-soft); color:var(--sage);
+}
+.phase-pill.p2{background:var(--accent-soft); color:var(--accent-deep)}
+.phase-pill.p3{background:transparent; border:1px solid var(--line); color:var(--faint)}
+
+.stat-row{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; margin-bottom:26px}
+.stat{background:var(--card); border-radius:var(--r); box-shadow:var(--shadow); padding:18px 20px}
+.stat .k{font-size:11.5px; color:var(--muted); letter-spacing:.08em}
+.stat .v{font-size:26px; font-weight:600; letter-spacing:.02em; margin-top:4px}
+.stat .v small{font-size:12px; font-weight:500; color:var(--muted); letter-spacing:.04em}
+.stat .delta{font-size:11px; color:var(--ok); margin-top:2px}
+
+.card{background:var(--card); border-radius:var(--r); box-shadow:var(--shadow); padding:22px 24px; margin-bottom:18px}
+.card h3{font-size:14.5px; font-weight:600; letter-spacing:.05em; margin-bottom:6px}
+.card .hint{font-size:12px; color:var(--muted); margin-bottom:14px}
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:18px}
+@media (max-width:860px){.grid-2{grid-template-columns:1fr}}
+
+.klist{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:14px}
+.kcard{
+  background:var(--card); border-radius:var(--r); box-shadow:var(--shadow); padding:18px 20px;
+  text-align:left; transition:transform .15s ease;
+}
+.kcard:active{transform:scale(.98)}
+.kcard .ic{font-size:20px}
+.kcard .t{font-weight:600; font-size:13.5px; margin-top:8px; letter-spacing:.04em}
+.kcard .d{font-size:11.5px; color:var(--muted); margin-top:2px; line-height:1.6}
+.kcard .count{font-size:10.5px; color:var(--accent); margin-top:8px; letter-spacing:.06em; font-weight:600}
+
+.field{margin-bottom:14px}
+.field label{display:block; font-size:12px; font-weight:600; color:var(--muted); letter-spacing:.06em; margin-bottom:6px}
+.field input,.field textarea,.field select{
+  width:100%; border:1px solid var(--line); background:var(--paper); border-radius:12px;
+  padding:11px 14px; font-size:13.5px; outline:none; transition:border-color .2s ease;
+}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent)}
+.field textarea{min-height:88px; resize:vertical; line-height:1.7}
+.btn-save{
+  background:var(--accent); color:#fff; font-weight:600; font-size:13.5px; letter-spacing:.06em;
+  padding:12px 26px; border-radius:999px; box-shadow:var(--shadow); transition:transform .15s ease;
+}
+:root[data-theme="dark"] .btn-save{color:#241E1A}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .btn-save{color:#241E1A} }
+.btn-save:active{transform:scale(.97)}
+.btn-sub{
+  background:var(--accent-soft); color:var(--accent-deep); font-weight:600; font-size:12.5px;
+  letter-spacing:.04em; padding:9px 18px; border-radius:999px;
+}
+
+.faq-item{border-bottom:1px solid var(--line); padding:14px 2px}
+.faq-item:last-child{border-bottom:none}
+.faq-item .q{font-weight:600; font-size:13.5px}
+.faq-item .a{font-size:12.5px; color:var(--muted); margin-top:4px; line-height:1.7}
+.faq-item .meta{font-size:10.5px; color:var(--faint); margin-top:6px; letter-spacing:.05em}
+
+.gen-out{
+  background:var(--paper); border:1px dashed var(--line); border-radius:var(--r-sm);
+  padding:18px; font-size:13px; line-height:1.9; white-space:pre-wrap; min-height:120px;
+}
+.seg{display:flex; gap:2px; padding:3px; background:var(--accent-soft); border-radius:999px; flex-wrap:wrap}
+.seg button{padding:7px 15px; border-radius:999px; font-size:12.5px; color:var(--muted); font-weight:500}
+.seg button.on{background:var(--card); color:var(--ink); box-shadow:var(--shadow); font-weight:600}
+
+.cust-row{
+  display:flex; align-items:center; gap:14px; padding:14px 4px; border-bottom:1px solid var(--line);
+  width:100%; text-align:left;
+}
+.cust-row:last-child{border-bottom:none}
+.avatar{
+  width:42px;height:42px;border-radius:50%;flex:none; display:grid; place-items:center;
+  background:var(--accent-soft); color:var(--accent-deep); font-weight:600; font-size:14px;
+}
+.cust-row .n{font-weight:600; font-size:13.5px}
+.cust-row .m{font-size:11.5px; color:var(--muted)}
+.cust-row .last{margin-left:auto; font-size:11.5px; color:var(--faint); text-align:right; flex:none}
+.tag{display:inline-block; font-size:10px; font-weight:600; padding:2px 8px; border-radius:999px; background:var(--sage-soft); color:var(--sage); margin-left:6px; letter-spacing:.05em}
+.tag.warn{background:var(--accent-soft); color:var(--warn)}
+
+.karte-head{display:flex; align-items:center; gap:16px; margin-bottom:20px}
+.karte-head .avatar{width:56px;height:56px;font-size:18px}
+.timeline{border-left:2px solid var(--line); margin-left:8px; padding-left:20px; display:flex; flex-direction:column; gap:16px}
+.timeline .tl{position:relative}
+.timeline .tl::before{
+  content:""; position:absolute; left:-25.5px; top:7px; width:9px; height:9px; border-radius:50%;
+  background:var(--accent); border:2px solid var(--card);
+}
+.timeline .date{font-size:11px; color:var(--muted); letter-spacing:.05em}
+.timeline .what{font-size:13.5px; font-weight:600; margin-top:1px}
+.timeline .note{font-size:12px; color:var(--muted); margin-top:2px; line-height:1.7}
+
+.quiz-opt{display:flex; flex-direction:column; gap:8px; margin-top:12px}
+.quiz-opt button{
+  text-align:left; background:var(--paper); border:1px solid var(--line); border-radius:12px;
+  padding:12px 16px; font-size:13px; transition:all .2s ease;
+}
+.quiz-opt button.correct{border-color:var(--ok); background:var(--sage-soft); font-weight:600}
+.quiz-opt button.wrong{border-color:var(--warn); opacity:.7}
+.progress{height:5px; background:var(--accent-soft); border-radius:999px; overflow:hidden; margin:8px 0 18px}
+.progress i{display:block; height:100%; background:var(--accent); border-radius:999px; transition:width .4s ease}
+
+.check-item{display:flex; align-items:center; gap:12px; padding:11px 2px; font-size:13.5px}
+.check-item .cb{
+  width:22px;height:22px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:11px;
+  border:1.5px solid var(--line); color:transparent;
+}
+.check-item.done .cb{background:var(--sage); border-color:var(--sage); color:#fff}
+.check-item.done{color:var(--muted); text-decoration:line-through; text-decoration-color:var(--faint)}
+
+/* mobile admin */
+.a-tabbar{display:none}
+@media (max-width:760px){
+  .a-nav{display:none}
+  .a-main{padding-bottom:110px}
+  .a-tabbar{
+    display:flex; position:fixed; bottom:0; left:0; right:0; z-index:90;
+    background:color-mix(in srgb, var(--card) 92%, transparent);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    border-top:1px solid var(--line);
+    padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+  }
+  .a-tabbar button{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;
+    font-size:9.5px; color:var(--faint); letter-spacing:.02em; padding:4px 0;
+  }
+  .a-tabbar button .ic{font-size:19px}
+  .a-tabbar button.on{color:var(--accent-deep); font-weight:600}
+}
+
+/* toast */
+.toast{
+  position:fixed; left:50%; bottom:32px; transform:translateX(-50%) translateY(20px);
+  background:var(--ink); color:var(--paper); font-size:13px; letter-spacing:.04em;
+  padding:12px 22px; border-radius:999px; box-shadow:var(--shadow-lg);
+  opacity:0; pointer-events:none; transition:all .35s ease; z-index:200; max-width:88vw; text-align:center;
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+</style>
+
+<!-- ============ OS chrome ============ -->
+<div class="os-bar">
+  <span class="wordmark">SALON <b>AI OS</b></span>
+  <span class="tenant">chainonjoli（デモサロン）</span>
+  <div class="mode-switch" role="tablist" aria-label="画面切替">
+    <button id="modeCustomer" class="on" onclick="setMode('customer')">お客様画面</button>
+    <button id="modeAdmin" onclick="setMode('admin')">管理画面</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     CUSTOMER APP
+     ============================================================ -->
+<div class="stage on" id="stageCustomer">
+<div class="phone-wrap"><div class="phone"><div class="app-body" id="appBody">
+
+  <!-- Home -->
+  <section class="scr on" id="c-home">
+    <div class="home-hero">
+      <div class="salon-name" id="h-salonName">chainonjoli</div>
+      <h1 id="h-catch">肌を整え、心を癒す。</h1>
+      <p>伊勢市のプライベートエステサロン</p>
+      <div class="ai-status"><span class="dot"></span>AIスタッフが24時間対応中</div>
+    </div>
+    <div class="home-menu">
+      <button class="home-btn" onclick="openChat()">
+        <span class="ic">💬</span>
+        <span><span class="t">AIに質問する</span><br><span class="d">営業時間・料金・アクセスなど即回答</span></span>
+        <span class="arrow">›</span>
+      </button>
+      <button class="home-btn alt" onclick="openCounsel()">
+        <span class="ic">🌿</span>
+        <span><span class="t">肌のお悩み相談</span><br><span class="d">AIカウンセラーがぴったりのケアをご提案</span></span>
+        <span class="arrow">›</span>
+      </button>
+      <button class="home-btn" onclick="openBooking()">
+        <span class="ic">📅</span>
+        <span><span class="t">予約する</span><br><span class="d">3タップで完了。24時間受付</span></span>
+        <span class="arrow">›</span>
+      </button>
+      <button class="home-btn alt" onclick="lineCta()">
+        <span class="ic">✉️</span>
+        <span><span class="t">LINEで相談・特典を受け取る</span><br><span class="d">ご登録で会員価格などの特典</span></span>
+        <span class="arrow">›</span>
+      </button>
+    </div>
+    <div class="home-foot">Powered by Salon AI OS</div>
+  </section>
+
+  <!-- AI受付 chat -->
+  <section class="scr" id="c-chat">
+    <div class="c-head">
+      <button class="back" onclick="goC('c-home')" aria-label="戻る">‹</button>
+      <div><h2>AI受付</h2><div class="sub">24時間いつでもご案内します</div></div>
+    </div>
+    <div class="chat-log" id="chatLog"></div>
+    <div class="chips" id="chatChips"></div>
+    <div class="chat-input">
+      <input id="chatText" placeholder="質問を入力…" onkeydown="if(event.key==='Enter'&&!event.isComposing)sendChat()">
+      <button onclick="sendChat()" aria-label="送信">↑</button>
+    </div>
+  </section>
+
+  <!-- AIカウンセラー -->
+  <section class="scr" id="c-counsel">
+    <div class="c-head">
+      <button class="back" onclick="goC('c-home')" aria-label="戻る">‹</button>
+      <div><h2>AI美容カウンセラー</h2><div class="sub">お悩みに寄り添ってご提案します</div></div>
+    </div>
+    <div class="step-wrap" id="counselBody"></div>
+  </section>
+
+  <!-- 予約 -->
+  <section class="scr" id="c-book">
+    <div class="c-head">
+      <button class="back" onclick="bookingBack()" aria-label="戻る">‹</button>
+      <div><h2>ご予約</h2><div class="sub" id="bookStepLabel">STEP 1 / 3 ・メニュー選択</div></div>
+    </div>
+    <div class="step-wrap" id="bookBody"></div>
+  </section>
+
+  <!-- 完了 -->
+  <section class="scr" id="c-done">
+    <div class="done-wrap">
+      <div class="done-mark">✓</div>
+      <h2>ご予約を承りました</h2>
+      <p id="doneDetail"></p>
+      <p style="margin-top:14px">確認のご連絡をLINEまたはお電話で<br>お送りいたします。</p>
+      <div class="cta-col" style="width:100%; margin-top:26px">
+        <button class="btn-primary btn-line" onclick="lineCta()">LINEで通知を受け取る</button>
+        <button class="btn-ghost" onclick="goC('c-home')">ホームへ戻る</button>
+      </div>
+    </div>
+  </section>
+
+</div></div></div>
+</div>
+
+<!-- ============================================================
+     ADMIN APP
+     ============================================================ -->
+<div class="stage" id="stageAdmin">
+<div class="admin">
+  <nav class="a-nav" id="aNav">
+    <button data-a="a-dash" class="on"><span class="ic">🏠</span>ホーム</button>
+    <button data-a="a-knowledge"><span class="ic">📚</span>AIナレッジ</button>
+    <div class="nav-sec">AI部署</div>
+    <button data-a="a-reception"><span class="ic">💬</span>AI受付</button>
+    <button data-a="a-marketing"><span class="ic">📣</span>AIマーケティング</button>
+    <button data-a="a-crm"><span class="ic">🗂</span>AI顧客管理</button>
+    <button data-a="a-edu"><span class="ic">🎓</span>AI教育</button>
+    <div class="nav-sec">その他</div>
+    <button data-a="a-analytics"><span class="ic">📈</span>分析</button>
+  </nav>
+
+  <main class="a-main">
+
+    <!-- ダッシュボード -->
+    <section class="a-scr on" id="a-dash">
+      <div class="a-head-row">
+        <div><h1 class="a-title">おはようございます、オーナー様</h1>
+        <p class="a-sub">昨夜もAIスタッフが働いていました。今日のサロンの状況です。</p></div>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><div class="k">昨日のAI応対</div><div class="v num">14<small> 件</small></div><div class="delta">うち3件は深夜のお問い合わせ</div></div>
+        <div class="stat"><div class="k">今日のご予約</div><div class="v num">3<small> 件</small></div><div class="delta">10:00 / 13:30 / 16:00</div></div>
+        <div class="stat"><div class="k">LINE友だち追加</div><div class="v num">+5<small> 人（今週）</small></div><div class="delta">カウンセラー経由 4人</div></div>
+        <div class="stat"><div class="k">回答できなかった質問</div><div class="v num">1<small> 件</small></div><div class="delta" style="color:var(--warn)">ナレッジ追加をおすすめ</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>AIからの申し送り</h3>
+          <p class="hint">AIスタッフが気づいたことをお伝えします</p>
+          <div class="faq-item"><div class="q">「ブライダル前のケアはできますか？」という質問に回答できませんでした</div><div class="a">ナレッジにFAQを1件追加すると、次から自動で回答できます。</div>
+          <button class="btn-sub" style="margin-top:10px" onclick="showAdmin('a-knowledge')">ナレッジに追加する →</button></div>
+          <div class="faq-item"><div class="q">佐藤様の来店周期が空いています</div><div class="a">前回来店から6週間。フォローのLINE文面をご用意できます。</div>
+          <button class="btn-sub" style="margin-top:10px" onclick="showAdmin('a-marketing')">文面を作成する →</button></div>
+        </div>
+        <div class="card">
+          <h3>はじめの設定</h3>
+          <p class="hint">3つ終えるとAIスタッフの受け答えがサロン仕様になります</p>
+          <div class="check-item done"><span class="cb">✓</span>サロン基本情報を登録</div>
+          <div class="check-item done"><span class="cb">✓</span>メニュー・料金を登録</div>
+          <div class="check-item" id="chk-faq"><span class="cb">✓</span>FAQを1件追加してみる</div>
+          <button class="btn-sub" style="margin-top:12px" onclick="showAdmin('a-knowledge')">続きを設定する →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ナレッジ -->
+    <section class="a-scr" id="a-knowledge">
+      <div class="a-head-row">
+        <div><h1 class="a-title">AIナレッジ</h1>
+        <p class="a-sub">ここに登録した情報は、受付・カウンセラー・マーケなど全AI部署に即時反映されます。</p></div>
+      </div>
+      <div class="klist" style="margin-bottom:26px">
+        <button class="kcard" onclick="toggleKForm('kf-basic')"><span class="ic">🏠</span><div class="t">サロン基本情報</div><div class="d">営業時間・住所・駐車場・電話</div><div class="count" id="kc-basic">登録済み</div></button>
+        <button class="kcard" onclick="toggleKForm('kf-faq')"><span class="ic">❓</span><div class="t">FAQ</div><div class="d">よくある質問と回答</div><div class="count" id="kc-faq"></div></button>
+        <button class="kcard" onclick="toast('メニューは3件登録済みです（デモ）')"><span class="ic">💆</span><div class="t">メニュー・料金</div><div class="d">施術メニューと価格</div><div class="count">3件</div></button>
+        <button class="kcard" onclick="toast('商品は2件登録済みです（デモ）')"><span class="ic">🧴</span><div class="t">商品</div><div class="d">取扱商品・ホームケア品</div><div class="count">2件</div></button>
+        <button class="kcard" onclick="toggleKForm('kf-tone')"><span class="ic">🖋</span><div class="t">文体・言葉づかい</div><div class="d">AIの話し方・NGワード</div><div class="count">設定済み</div></button>
+        <button class="kcard" onclick="toggleKForm('kf-camp')"><span class="ic">🎁</span><div class="t">キャンペーン</div><div class="d">期間限定の特典情報</div><div class="count" id="kc-camp"></div></button>
+        <button class="kcard" onclick="toast('予約ルール・キャンセルポリシーを編集できます（デモ）')"><span class="ic">📏</span><div class="t">予約・キャンセルルール</div><div class="d">受付条件・キャンセルポリシー</div><div class="count">設定済み</div></button>
+        <button class="kcard" onclick="toast('コンセプト・理念を編集できます（デモ）')"><span class="ic">🌿</span><div class="t">コンセプト・理念</div><div class="d">サロンの想い・オーナー紹介</div><div class="count">設定済み</div></button>
+      </div>
+
+      <div class="card" id="kf-faq">
+        <h3>FAQを追加する</h3>
+        <p class="hint">保存すると、AI受付が今すぐこの質問に答えられるようになります。お客様画面で試せます。</p>
+        <div class="field"><label>お客様からの質問</label><input id="faqQ" placeholder="例：ブライダル前のケアはできますか？"></div>
+        <div class="field"><label>回答（サロンの言葉で）</label><textarea id="faqA" placeholder="例：はい、挙式の1〜2ヶ月前からのケアがおすすめです。まずはご相談ください。"></textarea></div>
+        <button class="btn-save" onclick="addFaq()">保存してAIに反映</button>
+        <div style="margin-top:22px" id="faqList"></div>
+      </div>
+
+      <div class="card" id="kf-basic" style="display:none">
+        <h3>サロン基本情報</h3>
+        <p class="hint">変更すると、AI受付の案内・予約画面・SNS投稿の署名などすべてに反映されます。</p>
+        <div class="grid-2">
+          <div class="field"><label>営業時間</label><input id="bi-hours"></div>
+          <div class="field"><label>定休日</label><input id="bi-closed"></div>
+          <div class="field"><label>住所</label><input id="bi-addr"></div>
+          <div class="field"><label>駐車場</label><input id="bi-parking"></div>
+        </div>
+        <button class="btn-save" onclick="saveBasic()">保存してAIに反映</button>
+      </div>
+
+      <div class="card" id="kf-tone" style="display:none">
+        <h3>文体・言葉づかい</h3>
+        <p class="hint">全AI部署の話し方に反映されます。</p>
+        <div class="field"><label>話し方の方針</label><input id="tone-style" value="丁寧であたたかく。押し売りをしない。絵文字は控えめに。"></div>
+        <div class="field"><label>NGワード（読点区切り）</label><input id="tone-ng" value="治る、医療、効果保証、絶対"></div>
+        <button class="btn-save" onclick="toast('文体設定を全AI部署に反映しました')">保存してAIに反映</button>
+      </div>
+
+      <div class="card" id="kf-camp" style="display:none">
+        <h3>キャンペーンを追加</h3>
+        <p class="hint">受付の案内・カウンセラーの提案・SNS投稿の生成に自動で使われます。</p>
+        <div class="field"><label>キャンペーン名</label><input id="campT" placeholder="例：初回フェイシャル体験 ¥5,500"></div>
+        <div class="field"><label>内容・期間</label><input id="campD" placeholder="例：今月末まで。初めての方限定。"></div>
+        <button class="btn-save" onclick="addCamp()">保存してAIに反映</button>
+      </div>
+    </section>
+
+    <!-- AI受付設定 -->
+    <section class="a-scr" id="a-reception">
+      <div class="a-head-row"><div><h1 class="a-title">AI受付</h1>
+      <p class="a-sub">お客様画面のチャットを24時間担当します。回答内容はすべてAIナレッジから引用されます。</p></div></div>
+      <div class="stat-row">
+        <div class="stat"><div class="k">今週の応対数</div><div class="v num">62<small> 件</small></div></div>
+        <div class="stat"><div class="k">営業時間外の応対</div><div class="v num">41<small> %</small></div></div>
+        <div class="stat"><div class="k">回答→予約への転換</div><div class="v num">18<small> %</small></div></div>
+      </div>
+      <div class="card">
+        <h3>よく聞かれている質問（今週）</h3>
+        <div class="faq-item"><div class="q">1. 駐車場はありますか？ <span class="tag">12回</span></div></div>
+        <div class="faq-item"><div class="q">2. 当日予約はできますか？ <span class="tag">9回</span></div></div>
+        <div class="faq-item"><div class="q">3. 会員価格について <span class="tag">7回</span></div></div>
+        <div class="faq-item"><div class="q">4. ブライダル前のケア <span class="tag warn">回答不可 → ナレッジ追加を推奨</span></div></div>
+      </div>
+      <div class="card">
+        <h3>動作テスト</h3>
+        <p class="hint">お客様画面に切り替えて、実際の受け答えを確認できます。</p>
+        <button class="btn-sub" onclick="setMode('customer');openChat()">お客様画面でテストする →</button>
+      </div>
+    </section>
+
+    <!-- マーケティング -->
+    <section class="a-scr" id="a-marketing">
+      <div class="a-head-row"><div><h1 class="a-title">AIマーケティング</h1>
+      <p class="a-sub">サロンの文体・メニュー・キャンペーンを踏まえた投稿を作成します。</p></div></div>
+      <div class="card">
+        <h3>投稿をつくる</h3>
+        <div class="field"><label>投稿先</label>
+          <div class="seg" id="mkPlatform">
+            <button class="on" data-v="Instagram">Instagram</button>
+            <button data-v="リール台本">リール台本</button>
+            <button data-v="Threads">Threads</button>
+            <button data-v="LINE配信">LINE配信</button>
+            <button data-v="ブログ">ブログ</button>
+            <button data-v="Google">Googleビジネス</button>
+          </div>
+        </div>
+        <div class="field"><label>ネタ（タップで選択 or 自由入力）</label>
+          <div class="seg" id="mkTopic" style="margin-bottom:10px">
+            <button class="on" data-v="乾燥対策">乾燥対策</button>
+            <button data-v="毛穴ケア">毛穴ケア</button>
+            <button data-v="キャンペーン告知">キャンペーン告知</button>
+            <button data-v="お客様の声">お客様の声</button>
+          </div>
+          <input id="mkFree" placeholder="自由入力（例：夏のむくみケア）">
+        </div>
+        <button class="btn-save" onclick="genPost()">AIに作成してもらう</button>
+        <div style="margin-top:18px">
+          <div class="gen-out" id="mkOut">ここに投稿文が生成されます。ナレッジの文体・NGワード・キャンペーン情報が自動で反映されます。</div>
+          <div style="display:flex; gap:10px; margin-top:12px">
+            <button class="btn-sub" onclick="copyPost()">コピー</button>
+            <button class="btn-sub" onclick="toast('投稿カレンダーに予約しました（デモ）')">投稿予約</button>
+            <button class="btn-sub" onclick="toast('ネタ帳に保存しました（デモ）')">ネタ帳へ</button>
+          </div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card"><h3>投稿カレンダー <span class="phase-pill p2">PHASE 2</span></h3>
+        <p class="hint">予約投稿・自動リマインドは Phase 2 で追加予定です。</p></div>
+        <div class="card"><h3>人気投稿分析 <span class="phase-pill p2">PHASE 2</span></h3>
+        <p class="hint">Instagram API連携後、反応の良い投稿を学習して次の提案に活かします。</p></div>
+      </div>
+    </section>
+
+    <!-- 顧客管理 -->
+    <section class="a-scr" id="a-crm">
+      <div class="a-head-row"><div><h1 class="a-title">AI顧客管理 <span class="phase-pill p2">PHASE 2</span></h1>
+      <p class="a-sub">カルテ・来店履歴・次回目安を一元管理。AIがフォローのタイミングを提案します。</p></div></div>
+      <div class="card" id="custList">
+        <h3>顧客一覧</h3>
+        <button class="cust-row" onclick="openKarte(0)"><span class="avatar">佐</span><span><span class="n">佐藤 美咲 様</span><span class="tag warn">フォロー推奨</span><br><span class="m">フェイシャル会員 ・ 来店12回</span></span><span class="last">前回来店<br>6週間前</span></button>
+        <button class="cust-row" onclick="openKarte(1)"><span class="avatar">田</span><span><span class="n">田中 恵子 様</span><br><span class="m">ビジター ・ 来店2回</span></span><span class="last">前回来店<br>2週間前</span></button>
+        <button class="cust-row" onclick="openKarte(2)"><span class="avatar">山</span><span><span class="n">山本 由紀 様</span><span class="tag">次回予約済</span><br><span class="m">フェイシャル会員 ・ 来店8回</span></span><span class="last">前回来店<br>3週間前</span></button>
+      </div>
+      <div class="card" id="karteView" style="display:none"></div>
+    </section>
+
+    <!-- 教育 -->
+    <section class="a-scr" id="a-edu">
+      <div class="a-head-row"><div><h1 class="a-title">AI教育 <span class="phase-pill p2">PHASE 2</span></h1>
+      <p class="a-sub">マニュアルもナレッジから自動生成。新人スタッフの教育をAIが担当します。</p></div></div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>マニュアル</h3>
+          <div class="faq-item"><div class="q">📖 接客の基本マニュアル</div><div class="a">ご来店からお見送りまでの流れ・言葉づかい</div></div>
+          <div class="faq-item"><div class="q">📖 フェイシャル施術マニュアル</div><div class="a">準備・手順・仕上げ・注意事項</div></div>
+          <div class="faq-item"><div class="q">📖 商品説明マニュアル</div><div class="a">取扱商品の特徴とご案内トーク</div></div>
+          <div class="faq-item"><div class="q">🎬 動画教材 <span class="phase-pill p3">PHASE 3</span></div></div>
+        </div>
+        <div class="card">
+          <h3>理解度チェック</h3>
+          <p class="hint">ナレッジから自動生成された3問のミニテストです。</p>
+          <div id="quizBody"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 分析 -->
+    <section class="a-scr" id="a-analytics">
+      <div class="a-head-row"><div><h1 class="a-title">分析 <span class="phase-pill p2">PHASE 2</span></h1>
+      <p class="a-sub">AI応対・予約・SNSの成果をひとつの画面で。</p></div></div>
+      <div class="stat-row">
+        <div class="stat"><div class="k">今月のAI応対</div><div class="v num">248<small> 件</small></div><div class="delta">先月比 +32%</div></div>
+        <div class="stat"><div class="k">AI経由の予約</div><div class="v num">21<small> 件</small></div><div class="delta">先月比 +8件</div></div>
+        <div class="stat"><div class="k">LINE登録</div><div class="v num">+19<small> 人</small></div><div class="delta">カウンセラー経由 63%</div></div>
+        <div class="stat"><div class="k">オーナーの削減時間</div><div class="v num">約12<small> 時間/月</small></div><div class="delta">電話・DM対応の代行分</div></div>
+      </div>
+      <div class="card"><h3>詳細レポート <span class="phase-pill p2">PHASE 2</span></h3>
+      <p class="hint">曜日別の問い合わせ傾向、予約転換率、SNS別の流入分析などを追加予定です。</p></div>
+    </section>
+
+  </main>
+</div>
+
+<div class="a-tabbar" id="aTabbar">
+  <button data-a="a-dash" class="on"><span class="ic">🏠</span>ホーム</button>
+  <button data-a="a-knowledge"><span class="ic">📚</span>ナレッジ</button>
+  <button data-a="a-marketing"><span class="ic">📣</span>マーケ</button>
+  <button data-a="a-crm"><span class="ic">🗂</span>顧客</button>
+  <button data-a="a-edu"><span class="ic">🎓</span>教育</button>
+</div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ============================================================
+   AIナレッジ（このオブジェクトが全AI部署の唯一の情報源）
+   ============================================================ */
+const DEFAULT_KNOWLEDGE = {
+  salon: {
+    name: "chainonjoli", catch: "肌を整え、心を癒す。",
+    hours: "10:00〜19:00（最終受付 17:30）", closed: "不定休（予約制）",
+    addr: "三重県伊勢市（ご予約時に詳細をご案内します）",
+    parking: "専用駐車場1台あり。満車時は近隣コインパーキングをご案内します。",
+    tone: "丁寧であたたかく。押し売りをしない。",
+  },
+  menus: [
+    { name: "フェイシャルエステ（ビジター）", price: 8800, min: 90, desc: "クレンジングから保湿まで、肌質に合わせたフルコース。" },
+    { name: "フェイシャルエステ（会員）", price: 3300, min: 90, desc: "会員様の特別価格。継続ケアにおすすめです。" },
+    { name: "初回カウンセリング＋体験", price: 5500, min: 100, desc: "肌のお悩みを丁寧にヒアリングしてから体験いただけます。" },
+  ],
+  products: [
+    { name: "保湿ローション", price: 4180, desc: "乾燥・敏感肌向け。毎日の土台づくりに。" },
+    { name: "薬用美白美容液", price: 6600, desc: "くすみ・シミ予防のホームケアに。" },
+  ],
+  campaigns: [],
+  policies: {
+    reserve: "LINE・お電話・こちらの予約フォームから24時間受付。前日までのご予約がおすすめです。",
+    cancel: "前日までのご連絡は無料。当日キャンセルは施術料の50%を頂戴します。体調不良の際はご相談ください。",
+  },
+  faqs: [
+    { q: "男性も利用できますか？", a: "申し訳ございません。当サロンは女性専用とさせていただいております。", keys: ["男性", "メンズ"] },
+    { q: "子ども連れでも大丈夫ですか？", a: "プライベートサロンのため、ゆっくりお過ごしいただけるようお子様連れはご遠慮いただいております。ご了承ください。", keys: ["子ども", "子供", "子連れ"] },
+    { q: "支払い方法は？", a: "現金・各種キャッシュレス決済がご利用いただけます。", keys: ["支払", "決済", "カード", "PayPay"] },
+  ],
+  counseling: {
+    "乾燥": { advice: "空調や季節の影響で、肌の水分と油分のバランスが崩れやすい状態かもしれません。", menu: 0, product: 0, homecare: "洗顔はぬるま湯で優しく。化粧水は手のひらで包み込むように重ねづけを。", life: "湯船にゆっくり浸かる・就寝前の水分補給もおすすめです。" },
+    "毛穴": { advice: "皮脂や古い角質が残りやすくなっているサインかもしれません。", menu: 0, product: 0, homecare: "ゴシゴシ洗いは逆効果。泡で包む洗顔と、その後の保湿をセットで。", life: "睡眠不足と脂っこい食事は毛穴の目立ちにつながりやすいと言われます。" },
+    "シミ": { advice: "紫外線や摩擦の蓄積が影響している可能性があります。", menu: 2, product: 1, homecare: "朝の日焼け止めを一年中。こすらないクレンジングを心がけて。", life: "ビタミンCを含む食材を意識的に摂るのもおすすめです。" },
+    "シワ": { advice: "乾燥と表情のクセ、ハリの低下が重なっているのかもしれません。", menu: 0, product: 0, homecare: "保湿を重ねて、目元・口元は指の腹で優しくなじませて。", life: "うつむき姿勢が続くと首や口元に影響しやすいので、こまめなストレッチを。" },
+    "ニキビ": { advice: "皮脂バランスや摩擦、ターンオーバーの乱れが重なっているのかもしれません。", menu: 2, product: 0, homecare: "触らない・つぶさないが基本。清潔な寝具も大切です。", life: "睡眠と糖分の摂りすぎに気をつけて。悪化する場合は皮膚科の受診をおすすめします。" },
+    "敏感肌": { advice: "バリア機能が一時的に弱まっている状態かもしれません。", menu: 2, product: 0, homecare: "新しい化粧品は一度に増やさず、低刺激の保湿を最優先に。", life: "刺激の強い食事や睡眠不足は揺らぎにつながりやすいです。" },
+    "くすみ": { advice: "血行や古い角質、乾燥が重なって透明感が失われているのかもしれません。", menu: 0, product: 1, homecare: "蒸しタオルで温めてからの保湿がおすすめです。", life: "軽い運動や湯船で巡りを整えるのも効果的と言われます。" },
+    "赤み": { advice: "外部刺激や乾燥で肌が敏感に傾いているサインかもしれません。", menu: 2, product: 0, homecare: "こすらず、冷やしすぎず。低刺激の保湿でバリアを守って。", life: "長引く赤みやかゆみは、皮膚科の受診をおすすめします。" },
+    "たるみ": { advice: "ハリの低下やむくみ、姿勢のクセが影響しているのかもしれません。", menu: 0, product: 0, homecare: "強いマッサージは逆効果のことも。保湿とやさしいリンパケアを。", life: "スマホを見る姿勢と噛みしめのクセを意識してみてください。" },
+    "ホームケア相談": { advice: "毎日のケアを少し整えるだけでも、肌は応えてくれます。", menu: 2, product: 0, homecare: "洗う・潤す・守るの3ステップをシンプルに続けるのが近道です。", life: "まずは1週間、睡眠と保湿を最優先にしてみましょう。" },
+  },
+};
+
+const LS_KEY = "salon-ai-os-knowledge-v1";
+let K;
+try { K = JSON.parse(localStorage.getItem(LS_KEY)) || structuredClone(DEFAULT_KNOWLEDGE); }
+catch(e){ K = structuredClone(DEFAULT_KNOWLEDGE); }
+function saveK(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(K)); }catch(e){} }
+const yen = n => "¥" + n.toLocaleString("ja-JP");
+
+/* ============================================================
+   OS chrome
+   ============================================================ */
+function setMode(m){
+  document.getElementById("stageCustomer").classList.toggle("on", m==="customer");
+  document.getElementById("stageAdmin").classList.toggle("on", m==="admin");
+  document.getElementById("modeCustomer").classList.toggle("on", m==="customer");
+  document.getElementById("modeAdmin").classList.toggle("on", m==="admin");
+  window.scrollTo({top:0});
+}
+let toastTimer;
+function toast(t){
+  const el = document.getElementById("toast");
+  el.textContent = t; el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove("show"), 2600);
+}
+function lineCta(){ toast("デモ：本番ではLINE友だち追加ページへ遷移します"); }
+
+/* ============================================================
+   Customer — navigation
+   ============================================================ */
+function goC(id){
+  document.querySelectorAll("#stageCustomer .scr").forEach(s=>s.classList.remove("on"));
+  document.getElementById(id).classList.add("on");
+}
+
+/* ============================================================
+   Customer — AI受付チャット
+   ============================================================ */
+const CHIP_INTENTS = ["営業時間","料金・メニュー","アクセス・駐車場","予約方法","キャンセルについて","キャンペーン"];
+let chatStarted = false;
+
+function openChat(){
+  goC("c-chat");
+  renderChips();
+  if(!chatStarted){
+    chatStarted = true;
+    aiSay(`こんにちは。${K.salon.name} のAI受付です🌿\n24時間いつでもご案内いたします。\n下のボタンからもお選びいただけます。`);
+  }
+}
+function renderChips(){
+  const box = document.getElementById("chatChips");
+  box.innerHTML = "";
+  CHIP_INTENTS.forEach(c=>{
+    const b = document.createElement("button");
+    b.textContent = c;
+    b.onclick = ()=>{ userSay(c); answer(c); };
+    box.appendChild(b);
+  });
+}
+function el(tag, cls, text){ const e=document.createElement(tag); if(cls)e.className=cls; if(text!=null)e.textContent=text; return e; }
+function scrollLog(){ const l=document.getElementById("chatLog"); l.scrollTop = l.scrollHeight; }
+function userSay(t){ document.getElementById("chatLog").appendChild(el("div","msg me",t)); scrollLog(); }
+function aiSay(t, ctas){
+  const log = document.getElementById("chatLog");
+  const ty = el("div","typing"); ty.append(el("i"),el("i"),el("i"));
+  log.appendChild(ty); scrollLog();
+  setTimeout(()=>{
+    ty.remove();
+    const m = el("div","msg ai",t);
+    if(ctas && ctas.length){
+      const row = el("div","msg-cta");
+      ctas.forEach(c=>{ const b=el("button",null,c.label); b.onclick=c.fn; row.appendChild(b); });
+      m.appendChild(row);
+    }
+    log.appendChild(m); scrollLog();
+  }, 650 + Math.random()*450);
+}
+function sendChat(){
+  const inp = document.getElementById("chatText");
+  const t = inp.value.trim();
+  if(!t) return;
+  inp.value = "";
+  userSay(t); answer(t);
+}
+function answer(q){
+  const s = K.salon, p = K.policies;
+  const bookCta = [{label:"予約に進む", fn:openBooking},{label:"LINEで相談", fn:lineCta}];
+
+  // カスタムFAQ（管理画面から追加分を含む）を最優先で検索
+  const hit = K.faqs.find(f=>{
+    if(q.length >= 2 && f.q.includes(q)) return true; // 短い問い合わせは質問文への部分一致
+    const keys = (f.keys||[]).concat(f.q.replace(/[？?]/g,"").split(/[はをがのにで、。\s]/).filter(w=>w.length>=2));
+    return keys.some(k=>k && q.includes(k));
+  });
+  if(hit){ aiSay(hit.a, bookCta); return; }
+
+  if(/営業|時間|何時|open/i.test(q)) aiSay(`営業時間は ${s.hours} です。\n定休日：${s.closed}`, bookCta);
+  else if(/料金|メニュー|価格|いくら|値段|コース/.test(q)){
+    const list = K.menus.map(m=>`・${m.name}（${m.min}分）… ${yen(m.price)}`).join("\n");
+    aiSay(`メニューと料金のご案内です。\n\n${list}${K.campaigns.length?`\n\n🎁 ${K.campaigns[0].title}（${K.campaigns[0].desc}）`:""}`, bookCta);
+  }
+  else if(/アクセス|場所|住所|どこ|駐車|車/.test(q)) aiSay(`所在地：${s.addr}\n🚗 駐車場：${s.parking}`, bookCta);
+  else if(/予約|空き|とりたい|取りたい/.test(q)) aiSay(p.reserve, bookCta);
+  else if(/キャンセル|変更|遅れ/.test(q)) aiSay(p.cancel, bookCta);
+  else if(/キャンペーン|割引|特典|クーポン/.test(q)){
+    if(K.campaigns.length) aiSay(K.campaigns.map(c=>`🎁 ${c.title}\n${c.desc}`).join("\n\n"), bookCta);
+    else aiSay("ただいま開催中のキャンペーンはございませんが、LINEご登録の方に特典をご用意しています。", [{label:"LINE登録", fn:lineCta}]);
+  }
+  else if(/肌|悩み|相談|シミ|シワ|毛穴|ニキビ|乾燥|くすみ|たるみ|赤み/.test(q)) aiSay("お肌のお悩みですね。AI美容カウンセラーが詳しくお伺いします。", [{label:"カウンセリングを始める", fn:openCounsel}]);
+  else aiSay("申し訳ございません、その質問にはまだお答えできる情報がありません。\nオーナーに申し送りいたしました。LINEでお問い合わせいただくと直接ご案内できます。", [{label:"LINEで質問する", fn:lineCta}]);
+}
+
+/* ============================================================
+   Customer — AIカウンセラー
+   ============================================================ */
+const SKIN_TYPES = ["乾燥しやすい","脂っぽくなりやすい","混合タイプ","敏感になりやすい","よくわからない"];
+let counsel = {};
+
+function openCounsel(){
+  goC("c-counsel");
+  counsel = {};
+  counselStep1();
+}
+function counselStep1(){
+  const b = document.getElementById("counselBody");
+  b.innerHTML = "";
+  b.append(el("div","step-label","STEP 1 / 3"),
+           el("div","step-q","いま、いちばん気になるお悩みは\nどれですか？"),
+           el("p","step-note","※ 医療的な診断ではなく、美容ケアのご提案です"));
+  const g = el("div","concern-grid");
+  Object.keys(K.counseling).forEach(c=>{
+    const btn = el("button",null,c);
+    btn.onclick = ()=>{ counsel.concern = c; counselStep2(); };
+    g.appendChild(btn);
+  });
+  b.appendChild(g);
+}
+function counselStep2(){
+  const b = document.getElementById("counselBody");
+  b.innerHTML = "";
+  b.append(el("div","step-label","STEP 2 / 3"),
+           el("div","step-q","ふだんの肌質に近いのは？"));
+  const g = el("div","opt-list");
+  SKIN_TYPES.forEach(t=>{
+    const btn = el("button",null,t);
+    btn.onclick = ()=>{ counsel.skin = t; counselStep3(); };
+    g.appendChild(btn);
+  });
+  b.appendChild(g);
+}
+function counselStep3(){
+  const b = document.getElementById("counselBody");
+  b.innerHTML = "";
+  b.append(el("div","step-label","STEP 3 / 3"),
+           el("div","step-q","そのお悩み、いつ頃から\n気になっていますか？"));
+  const g = el("div","opt-list");
+  ["最近になって","半年くらい前から","ずっと前から"].forEach(t=>{
+    const btn = el("button",null,t);
+    btn.onclick = ()=>{ counsel.since = t; counselResult(); };
+    g.appendChild(btn);
+  });
+  b.appendChild(g);
+}
+function counselResult(){
+  const b = document.getElementById("counselBody");
+  const c = K.counseling[counsel.concern];
+  const menu = K.menus[c.menu], prod = K.products[c.product];
+  b.innerHTML = "";
+  b.append(el("div","step-label","あなたへのご提案"),
+           el("div","step-q",`「${counsel.concern}」のお悩みに\n寄り添うケアをご提案します`));
+
+  const mk = (title, html)=>{
+    const card = el("div","result-card");
+    card.appendChild(el("h3",null,title));
+    const p = el("p"); p.innerHTML = html; card.appendChild(p);
+    return card;
+  };
+  b.appendChild(mk("お悩みについて", `${c.advice}<br>「${counsel.skin}」「${counsel.since}」とのことなので、無理のないペースで整えていきましょう。`));
+  b.appendChild(mk("おすすめの施術", `<strong>${menu.name}</strong>（${menu.min}分）<span class="price num">　${yen(menu.price)}</span><br>${menu.desc}`));
+  b.appendChild(mk("おすすめのホームケア商品", `<strong>${prod.name}</strong><span class="price num">　${yen(prod.price)}</span><br>${prod.desc}`));
+  b.appendChild(mk("今日からできること", `${c.homecare}<br>${c.life}`));
+
+  const cta = el("div","cta-col");
+  const b1 = el("button","btn-primary","この内容で予約に進む"); b1.onclick = ()=>openBooking(c.menu);
+  const b2 = el("button","btn-primary btn-line","LINEで詳しく相談する"); b2.onclick = lineCta;
+  const b3 = el("button","btn-ghost","最初からやり直す"); b3.onclick = counselStep1;
+  cta.append(b1,b2,b3);
+  b.appendChild(cta);
+  b.appendChild(el("p","disclaimer","※ 本カウンセリングは美容上の一般的なご提案であり、医療行為・診断ではありません。症状が続く場合や強い炎症がある場合は、皮膚科など専門医の受診をおすすめします。"));
+  document.getElementById("appBody").scrollTop = 0;
+}
+
+/* ============================================================
+   Customer — 予約（3タップ）
+   ============================================================ */
+let book = { step:1 };
+const DAYS = ["日","月","火","水","木","金","土"];
+
+function openBooking(preMenu){
+  book = { step:1, menu: typeof preMenu==="number" ? preMenu : null };
+  goC("c-book");
+  if(book.menu!=null){ book.step = 2; renderBookStep2(); } else renderBookStep1();
+}
+function bookingBack(){
+  if(book.step<=1){ goC("c-home"); return; }
+  book.step--;
+  [renderBookStep1, renderBookStep2, renderBookStep3][book.step-1]();
+}
+function bookLabel(){ document.getElementById("bookStepLabel").textContent = `STEP ${book.step} / 3 ・` + ["メニュー選択","日時選択","内容の確認"][book.step-1]; }
+function renderBookStep1(){
+  book.step = 1; bookLabel();
+  const b = document.getElementById("bookBody");
+  b.innerHTML = "";
+  b.append(el("div","step-q","メニューをお選びください"));
+  const g = el("div","opt-list");
+  K.menus.forEach((m,i)=>{
+    const btn = el("button");
+    btn.innerHTML = `<strong>${m.name}</strong><br><span style="font-size:11.5px;color:var(--muted)">${m.min}分 ・ <span class="num">${yen(m.price)}</span></span>`;
+    btn.onclick = ()=>{ book.menu=i; book.step=2; renderBookStep2(); };
+    g.appendChild(btn);
+  });
+  b.appendChild(g);
+}
+function renderBookStep2(){
+  book.step = 2; bookLabel();
+  const b = document.getElementById("bookBody");
+  b.innerHTML = "";
+  b.append(el("div","step-q","ご希望の日時をお選びください"));
+  const dr = el("div","day-row");
+  const today = new Date();
+  for(let i=1;i<=10;i++){
+    const d = new Date(today); d.setDate(d.getDate()+i);
+    const btn = el("button");
+    btn.innerHTML = `<div class="dw">${DAYS[d.getDay()]}</div><div class="dd num">${d.getDate()}</div>`;
+    btn.onclick = ()=>{
+      dr.querySelectorAll("button").forEach(x=>x.classList.remove("sel"));
+      btn.classList.add("sel");
+      book.date = `${d.getMonth()+1}月${d.getDate()}日（${DAYS[d.getDay()]}）`;
+      renderSlots(b);
+    };
+    dr.appendChild(btn);
+  }
+  b.appendChild(dr);
+  b.appendChild(el("p","step-note","日付を選ぶと空き時間が表示されます"));
+}
+function renderSlots(container){
+  let sg = container.querySelector(".slot-grid");
+  if(sg) sg.remove();
+  const note = container.querySelector(".step-note");
+  if(note) note.remove();
+  sg = el("div","slot-grid");
+  ["10:00","11:30","13:00","14:30","16:00","17:30"].forEach((t,i)=>{
+    const btn = el("button","num",t);
+    if(i===2 || i===5){ btn.disabled = true; }
+    else btn.onclick = ()=>{ book.time=t; book.step=3; renderBookStep3(); };
+    sg.appendChild(btn);
+  });
+  container.appendChild(sg);
+}
+function renderBookStep3(){
+  book.step = 3; bookLabel();
+  const m = K.menus[book.menu];
+  const b = document.getElementById("bookBody");
+  b.innerHTML = "";
+  b.append(el("div","step-q","この内容でご予約します"));
+  const box = el("div","confirm-box");
+  [["メニュー", m.name],["日時", `${book.date} ${book.time}〜`],["所要時間", `約${m.min}分`],["料金", yen(m.price)]].forEach(([k,v])=>{
+    const r = el("div","row"); r.append(el("span","k",k), el("span","num",v)); box.appendChild(r);
+  });
+  b.appendChild(box);
+  b.appendChild(el("p","step-note","※ デモのため、お名前・連絡先の入力は省略しています"));
+  const cta = el("div","cta-col");
+  const b1 = el("button","btn-primary","予約を確定する");
+  b1.onclick = ()=>{
+    document.getElementById("doneDetail").textContent = `${m.name}\n${book.date} ${book.time}〜`;
+    goC("c-done");
+  };
+  cta.appendChild(b1);
+  b.appendChild(cta);
+}
+
+/* ============================================================
+   Admin
+   ============================================================ */
+function showAdmin(id){
+  document.querySelectorAll(".a-scr").forEach(s=>s.classList.remove("on"));
+  document.getElementById(id).classList.add("on");
+  document.querySelectorAll("#aNav button, #aTabbar button").forEach(b=>b.classList.toggle("on", b.dataset.a===id));
+  window.scrollTo({top:0});
+}
+document.querySelectorAll("#aNav button, #aTabbar button").forEach(b=>{
+  if(b.dataset.a) b.onclick = ()=>showAdmin(b.dataset.a);
+});
+function toggleKForm(id){
+  ["kf-faq","kf-basic","kf-tone","kf-camp"].forEach(f=>{
+    document.getElementById(f).style.display = (f===id) ? "block" : "none";
+  });
+  document.getElementById(id).scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+/* --- ナレッジ：FAQ --- */
+function renderFaqList(){
+  const list = document.getElementById("faqList");
+  list.innerHTML = "<h3 style='font-size:13px;margin-bottom:4px'>登録済みFAQ</h3>";
+  K.faqs.slice().reverse().forEach(f=>{
+    const item = el("div","faq-item");
+    item.append(el("div","q","Q. "+f.q), el("div","a","A. "+f.a),
+                el("div","meta","受付・カウンセラー・マーケの全AIが参照します"));
+    list.appendChild(item);
+  });
+  document.getElementById("kc-faq").textContent = `${K.faqs.length}件`;
+  document.getElementById("kc-camp").textContent = K.campaigns.length ? `${K.campaigns.length}件 開催中` : "未登録";
+}
+function addFaq(){
+  const q = document.getElementById("faqQ").value.trim();
+  const a = document.getElementById("faqA").value.trim();
+  if(!q || !a){ toast("質問と回答の両方を入力してください"); return; }
+  K.faqs.push({ q, a, keys: [] });
+  saveK(); renderFaqList();
+  document.getElementById("faqQ").value = ""; document.getElementById("faqA").value = "";
+  const chk = document.getElementById("chk-faq"); if(chk) chk.classList.add("done");
+  toast("保存しました。AI受付が今すぐこの質問に答えられます 🌿");
+}
+/* --- ナレッジ：基本情報 --- */
+function fillBasic(){
+  document.getElementById("bi-hours").value = K.salon.hours;
+  document.getElementById("bi-closed").value = K.salon.closed;
+  document.getElementById("bi-addr").value = K.salon.addr;
+  document.getElementById("bi-parking").value = K.salon.parking;
+}
+function saveBasic(){
+  K.salon.hours = document.getElementById("bi-hours").value;
+  K.salon.closed = document.getElementById("bi-closed").value;
+  K.salon.addr = document.getElementById("bi-addr").value;
+  K.salon.parking = document.getElementById("bi-parking").value;
+  saveK();
+  toast("保存しました。AI受付の案内に即時反映されます");
+}
+/* --- ナレッジ：キャンペーン --- */
+function addCamp(){
+  const t = document.getElementById("campT").value.trim();
+  const d = document.getElementById("campD").value.trim();
+  if(!t){ toast("キャンペーン名を入力してください"); return; }
+  K.campaigns.push({ title: t, desc: d || "詳細はお問い合わせください" });
+  saveK(); renderFaqList();
+  document.getElementById("campT").value = ""; document.getElementById("campD").value = "";
+  toast("保存しました。受付の案内とSNS投稿に反映されます 🎁");
+}
+
+/* --- マーケ：投稿生成 --- */
+["mkPlatform","mkTopic"].forEach(id=>{
+  document.querySelectorAll(`#${id} button`).forEach(b=>{
+    b.onclick = ()=>{
+      document.querySelectorAll(`#${id} button`).forEach(x=>x.classList.remove("on"));
+      b.classList.add("on");
+    };
+  });
+});
+function pick(id){ return document.querySelector(`#${id} button.on`).dataset.v; }
+function genPost(){
+  const platform = pick("mkPlatform");
+  const topic = document.getElementById("mkFree").value.trim() || pick("mkTopic");
+  const s = K.salon;
+  const camp = K.campaigns.length ? `\n\n🎁 ${K.campaigns[0].title}\n${K.campaigns[0].desc}` : "";
+  const tags = `\n\n#${s.name} #伊勢市エステ #フェイシャル #${topic.replace(/\s/g,"")} #プライベートサロン #自分メンテナンス`;
+  let out = "";
+  if(platform==="Instagram"){
+    out = `【${topic}、そのままにしていませんか？】\n\n${s.catch}\n${s.name}です🌿\n\n季節の変わり目は、お肌もゆらぎがち。\n${topic}が気になる方は、がんばりすぎない毎日のケアから始めてみませんか。\n\nサロンでは、おひとりおひとりの肌に合わせた\nフェイシャルケアをご用意しています。\n\nご予約・ご相談はプロフィールのリンクから📩${camp}${tags}`;
+  } else if(platform==="リール台本"){
+    out = `🎬 リール台本（30秒）：${topic}\n\n[0-3秒] フック：「${topic}、実は毎日のアレが原因かも」\n[3-10秒] NG習慣を1つ紹介（テロップ大きめ）\n[10-20秒] 正しいケアを手元アップで実演\n[20-27秒] サロンでのケア風景を2カット\n[27-30秒] 「詳しくはプロフィールへ🌿」＋店名ロゴ\n\nBGM：落ち着いたアコースティック\n投稿文：本編は保存して見返してね${tags}`;
+  } else if(platform==="Threads"){
+    out = `${topic}に悩んでいる方へ。\n\n完璧なケアより、続けられるケア。\n${s.name}がいつもお伝えしていることです🌿\n\n今日できる小さな一歩：\n・ぬるま湯洗顔\n・たっぷり保湿\n・早めの就寝\n\nそれでも気になるときは、プロに頼ってくださいね。${camp}`;
+  } else if(platform==="LINE配信"){
+    out = `【${s.name}】\nこんにちは🌿 いつもありがとうございます。\n\n最近「${topic}」のご相談が増えています。\nご自宅ケアのコツを1つ：\n${topic}が気になるときこそ、洗いすぎ・こすりすぎに注意です。\n\nじっくりケアしたい方は、下のメニューからご予約いただけます😊${camp}\n\n▼ ご予約はこちら`;
+  } else if(platform==="ブログ"){
+    out = `タイトル案：${topic}の原因と、今日からできる3つのケア【${s.name}】\n\n構成：\n1. ${topic}に悩む方が増えています（共感）\n2. 考えられる主な原因（生活習慣・季節・ケア方法）\n3. 自宅でできる3つのケア\n4. サロンケアでできること（${K.menus[0].name}のご紹介）\n5. まとめ＋ご予約案内\n\n※医療的な断定表現は使わず「〜と言われています」で統一`;
+  } else {
+    out = `【Googleビジネスプロフィール投稿】\n\n${topic}のお悩み、ご相談ください🌿\n\n伊勢市のプライベートエステサロン ${s.name} では、おひとりおひとりに合わせたフェイシャルケアをご提供しています。\n\n営業時間：${s.hours}\n${s.parking}${camp}\n\n「予約」ボタンからご予約いただけます。`;
+  }
+  document.getElementById("mkOut").textContent = out;
+  toast(`${platform}向けの投稿を作成しました`);
+}
+function copyPost(){
+  const t = document.getElementById("mkOut").textContent;
+  if(navigator.clipboard){ navigator.clipboard.writeText(t).then(()=>toast("コピーしました")); }
+  else toast("コピーしました（デモ）");
+}
+
+/* --- 顧客管理 --- */
+const CUSTOMERS = [
+  { name:"佐藤 美咲 様", type:"フェイシャル会員 ・ 来店12回", next:"次回目安：超過（6週間経過）", care:"乾燥・くすみ。強めの圧はNG。", history:[
+    { d:"6月12日", w:"フェイシャルエステ（会員）", n:"目元の乾燥が気になるとのこと。保湿ローションお買い上げ。" },
+    { d:"5月10日", w:"フェイシャルエステ（会員）", n:"リラックス重視。仕上がりにご満足。" },
+    { d:"4月8日", w:"フェイシャルエステ（会員）", n:"花粉の時期で敏感気味。低刺激メニューに変更。" },
+  ]},
+  { name:"田中 恵子 様", type:"ビジター ・ 来店2回", next:"次回目安：あと2週間", care:"初回カウンセリング済。毛穴のお悩み。", history:[
+    { d:"7月10日", w:"フェイシャルエステ（ビジター）", n:"2回目のご来店。会員プランをご検討中。" },
+    { d:"6月20日", w:"初回カウンセリング＋体験", n:"毛穴のお悩み。ホームケアの見直しをご提案。" },
+  ]},
+  { name:"山本 由紀 様", type:"フェイシャル会員 ・ 来店8回", next:"次回予約：8月2日 13:30", care:"金属アレルギーあり。アクセサリー類注意。", history:[
+    { d:"7月3日", w:"フェイシャルエステ（会員）", n:"美白美容液リピート購入。" },
+    { d:"6月5日", w:"フェイシャルエステ（会員）", n:"くすみ改善を実感いただけているご様子。" },
+  ]},
+];
+function openKarte(i){
+  const c = CUSTOMERS[i];
+  const v = document.getElementById("karteView");
+  document.getElementById("custList").style.display = "none";
+  v.style.display = "block";
+  v.innerHTML = "";
+  const back = el("button","btn-sub","‹ 一覧へ戻る");
+  back.onclick = ()=>{ v.style.display="none"; document.getElementById("custList").style.display="block"; };
+  v.appendChild(back);
+  const head = el("div","karte-head");
+  head.style.marginTop = "18px";
+  head.append(el("span","avatar",c.name[0]));
+  const hd = el("div");
+  hd.appendChild(el("div","n",c.name)).style.fontWeight="600";
+  hd.appendChild(el("div","m",c.type)).style.cssText="font-size:12px;color:var(--muted)";
+  head.appendChild(hd);
+  v.appendChild(head);
+
+  const info = el("div","confirm-box"); info.style.marginBottom = "20px";
+  [["次回来店",c.next],["注意事項",c.care]].forEach(([k,val])=>{
+    const r = el("div","row"); r.append(el("span","k",k), el("span",null,val)); info.appendChild(r);
+  });
+  v.appendChild(info);
+  v.appendChild(el("h3",null,"来店・施術履歴")).style.cssText="font-size:14px;margin-bottom:14px";
+  const tl = el("div","timeline");
+  c.history.forEach(h=>{
+    const t = el("div","tl");
+    t.append(el("div","date",h.d), el("div","what",h.w), el("div","note",h.n));
+    tl.appendChild(t);
+  });
+  v.appendChild(tl);
+  const aiNote = el("div","card");
+  aiNote.style.cssText = "margin-top:20px; background:var(--sage-soft); box-shadow:none";
+  aiNote.innerHTML = "<h3>🤖 AIからの提案</h3><p style='font-size:12.5px;line-height:1.8'>この方の来店周期と履歴から、フォローLINEの文面を作成できます。</p>";
+  const btn = el("button","btn-sub","フォロー文面を作成 →");
+  btn.style.marginTop = "10px";
+  btn.onclick = ()=>{ showAdmin("a-marketing");
+    document.getElementById("mkFree").value = "ご無沙汰のお客様へのフォロー";
+    document.querySelectorAll("#mkPlatform button").forEach(x=>x.classList.toggle("on", x.dataset.v==="LINE配信"));
+    toast("顧客情報を引き継ぎました。作成ボタンを押してください");
+  };
+  aiNote.appendChild(btn);
+  v.appendChild(aiNote);
+}
+
+/* --- 教育：クイズ --- */
+const QUIZ = [
+  { q:"当日キャンセルのキャンセル料は？", opts:["無料","施術料の50%","全額"], ans:1 },
+  { q:"当サロンの会員価格（フェイシャル）は？", opts:["¥3,300","¥5,500","¥8,800"], ans:0 },
+  { q:"お客様に肌トラブルの相談をされたら、してはいけないことは？", opts:["共感して話を聞く","「治ります」と断言する","皮膚科の受診をすすめる"], ans:1 },
+];
+let quizIdx = 0, quizScore = 0;
+function renderQuiz(){
+  const b = document.getElementById("quizBody");
+  b.innerHTML = "";
+  if(quizIdx >= QUIZ.length){
+    const done = el("div");
+    done.innerHTML = `<div style="font-size:15px;font-weight:600">結果：${quizScore} / ${QUIZ.length} 問正解 ${quizScore===QUIZ.length?"🎉":""}</div>
+    <p style="font-size:12.5px;color:var(--muted);margin-top:6px">${quizScore===QUIZ.length?"完璧です！接客の基本はバッチリ。":"間違えた項目のマニュアルを復習しましょう。"}</p>`;
+    const rb = el("button","btn-sub","もう一度挑戦");
+    rb.style.marginTop = "12px";
+    rb.onclick = ()=>{ quizIdx=0; quizScore=0; renderQuiz(); };
+    done.appendChild(rb);
+    b.appendChild(done);
+    return;
+  }
+  const q = QUIZ[quizIdx];
+  const prog = el("div","progress"); const bar = el("i");
+  bar.style.width = `${(quizIdx/QUIZ.length)*100}%`; prog.appendChild(bar);
+  b.append(prog, el("div","q",`Q${quizIdx+1}. ${q.q}`));
+  const opts = el("div","quiz-opt");
+  let answered = false;
+  q.opts.forEach((o,i)=>{
+    const btn = el("button",null,o);
+    btn.onclick = ()=>{
+      if(answered) return;
+      answered = true;
+      if(i===q.ans){ btn.classList.add("correct"); quizScore++; }
+      else { btn.classList.add("wrong"); opts.children[q.ans].classList.add("correct"); }
+      setTimeout(()=>{ quizIdx++; renderQuiz(); }, 1100);
+    };
+    opts.appendChild(btn);
+  });
+  b.appendChild(opts);
+}
+
+/* init */
+renderFaqList();
+fillBasic();
+renderQuiz();
+</script>
+</body>
+</html>
