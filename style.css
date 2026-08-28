@@ -143,6 +143,7 @@ nav {
 /* Hero Section */
 .hero {
     height: 100vh;
+    height: 100svh; /* iOS等のツールバー分を除いた高さ（未対応ブラウザは上の100vhが効く） */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -176,9 +177,16 @@ nav {
 }
 
 .hero-content h1 {
-    font-size: 3.5rem;
+    /* 画面幅と端末の文字サイズ設定のどちらが変わっても枠に収まるように */
+    font-size: min(3.5rem, 8.5vw);
     margin-bottom: 2rem;
-    line-height: 1.2;
+    line-height: 1.3;
+}
+
+/* 「肌を整え、」「心を癒す。」を語句単位でしか折り返させない
+   （「…心を癒／す。」のような不自然な位置での改行を防ぐ） */
+.hero-content h1 .ln {
+    display: inline-block;
 }
 
 .hero-content p {
@@ -385,12 +393,17 @@ footer {
     }
 
     .hero-content {
-        padding: 2rem;
+        padding: 2rem 1.5rem;
         width: 90%;
     }
 
     .hero-content h1 {
-        font-size: 2.2rem;
+        font-size: min(2.2rem, 8.5vw);
+        margin-bottom: 1.2rem;
+    }
+
+    .hero-content p {
+        margin-bottom: 2rem;
     }
 
     .access-flex {
