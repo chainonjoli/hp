@@ -209,7 +209,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .step-wrap{padding:8px 22px 24px; flex:1; display:flex; flex-direction:column}
 .step-label{font-size:11px; letter-spacing:.18em; color:var(--accent); font-weight:600; margin:10px 0 4px}
 .step-q{font-size:17px; font-weight:600; letter-spacing:.04em; line-height:1.7; text-wrap:balance}
-.step-note{font-size:11.5px; color:var(--muted); margin-top:6px}
+.step-note{font-size:11.5px; color:var(--muted); margin-top:6px; white-space:pre-line}
 .concern-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px}
 .concern-grid button{
   background:var(--card); border-radius:var(--r-sm); padding:16px 8px; text-align:center;
@@ -715,9 +715,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
       <p class="a-sub">カルテ・来店履歴・次回目安を一元管理。AIがフォローのタイミングを提案します。</p></div></div>
       <div class="card" id="custList">
         <h3>顧客一覧</h3>
-        <button class="cust-row" onclick="openKarte(0)"><span class="avatar">佐</span><span><span class="n">佐藤 美咲 様</span><span class="tag warn">フォロー推奨</span><br><span class="m">フェイシャル会員 ・ 来店12回</span></span><span class="last">前回来店<br>6週間前</span></button>
-        <button class="cust-row" onclick="openKarte(1)"><span class="avatar">田</span><span><span class="n">田中 恵子 様</span><br><span class="m">ビジター ・ 来店2回</span></span><span class="last">前回来店<br>2週間前</span></button>
-        <button class="cust-row" onclick="openKarte(2)"><span class="avatar">山</span><span><span class="n">山本 由紀 様</span><span class="tag">次回予約済</span><br><span class="m">フェイシャル会員 ・ 来店8回</span></span><span class="last">前回来店<br>3週間前</span></button>
+        <button class="cust-row" onclick="openKarte(0)"><span class="avatar">佐</span><span><span class="n">佐藤 美咲 様</span><span class="tag warn">フォロー推奨</span><br><span class="m">No.0001 ・ フェイシャル会員 ・ 来店12回</span></span><span class="last">前回来店<br>6週間前</span></button>
+        <button class="cust-row" onclick="openKarte(1)"><span class="avatar">田</span><span><span class="n">田中 恵子 様</span><br><span class="m">No.0038 ・ ビジター ・ 来店2回</span></span><span class="last">前回来店<br>2週間前</span></button>
+        <button class="cust-row" onclick="openKarte(2)"><span class="avatar">山</span><span><span class="n">山本 由紀 様</span><span class="tag">次回予約済</span><br><span class="m">No.0012 ・ フェイシャル会員 ・ 来店8回</span></span><span class="last">前回来店<br>3週間前</span></button>
       </div>
       <div class="card" id="karteView" style="display:none"></div>
     </section>
@@ -1084,11 +1084,21 @@ function renderBookStep3(){
     const r = el("div","row"); r.append(el("span","k",k), el("span","num",v)); box.appendChild(r);
   });
   b.appendChild(box);
-  b.appendChild(el("p","step-note","※ デモのため、お名前・連絡先の入力は省略しています"));
+  const f = el("div","field");
+  f.style.marginTop = "16px";
+  const lb = el("label",null,"お客様番号（会員の方・任意）");
+  const inp = el("input");
+  inp.id = "bookCustNo"; inp.placeholder = "例：0012"; inp.inputMode = "numeric";
+  inp.value = book.custNo || "";
+  f.append(lb, inp);
+  b.appendChild(f);
+  b.appendChild(el("p","step-note","番号がわからない場合は空欄のままで大丈夫です。\n※ デモのため、お名前・連絡先の入力は省略しています"));
   const cta = el("div","cta-col");
   const b1 = el("button","btn-primary","予約を確定する");
   b1.onclick = ()=>{
-    document.getElementById("doneDetail").textContent = `${m.name}\n${book.date} ${book.time}〜`;
+    book.custNo = inp.value.trim();
+    const noLine = book.custNo ? `\nお客様番号：${book.custNo}` : "";
+    document.getElementById("doneDetail").textContent = `${m.name}\n${book.date} ${book.time}〜${noLine}`;
     goC("c-done");
   };
   cta.appendChild(b1);
@@ -1204,16 +1214,16 @@ function copyPost(){
 
 /* --- 顧客管理 --- */
 const CUSTOMERS = [
-  { name:"佐藤 美咲 様", type:"フェイシャル会員 ・ 来店12回", next:"次回目安：超過（6週間経過）", care:"乾燥・くすみ。強めの圧はNG。", history:[
+  { no:"0001", name:"佐藤 美咲 様", type:"フェイシャル会員 ・ 来店12回", next:"次回目安：超過（6週間経過）", care:"乾燥・くすみ。強めの圧はNG。", history:[
     { d:"6月12日", w:"フェイシャルエステ（会員）", n:"目元の乾燥が気になるとのこと。保湿ローションお買い上げ。" },
     { d:"5月10日", w:"フェイシャルエステ（会員）", n:"リラックス重視。仕上がりにご満足。" },
     { d:"4月8日", w:"フェイシャルエステ（会員）", n:"花粉の時期で敏感気味。低刺激メニューに変更。" },
   ]},
-  { name:"田中 恵子 様", type:"ビジター ・ 来店2回", next:"次回目安：あと2週間", care:"初回カウンセリング済。毛穴のお悩み。", history:[
+  { no:"0038", name:"田中 恵子 様", type:"ビジター ・ 来店2回", next:"次回目安：あと2週間", care:"初回カウンセリング済。毛穴のお悩み。", history:[
     { d:"7月10日", w:"フェイシャルエステ（ビジター）", n:"2回目のご来店。会員プランをご検討中。" },
     { d:"6月20日", w:"初回カウンセリング＋体験", n:"毛穴のお悩み。ホームケアの見直しをご提案。" },
   ]},
-  { name:"山本 由紀 様", type:"フェイシャル会員 ・ 来店8回", next:"次回予約：8月2日 13:30", care:"金属アレルギーあり。アクセサリー類注意。", history:[
+  { no:"0012", name:"山本 由紀 様", type:"フェイシャル会員 ・ 来店8回", next:"次回予約：8月2日 13:30", care:"金属アレルギーあり。アクセサリー類注意。", history:[
     { d:"7月3日", w:"フェイシャルエステ（会員）", n:"美白美容液リピート購入。" },
     { d:"6月5日", w:"フェイシャルエステ（会員）", n:"くすみ改善を実感いただけているご様子。" },
   ]},
@@ -1232,12 +1242,12 @@ function openKarte(i){
   head.append(el("span","avatar",c.name[0]));
   const hd = el("div");
   hd.appendChild(el("div","n",c.name)).style.fontWeight="600";
-  hd.appendChild(el("div","m",c.type)).style.cssText="font-size:12px;color:var(--muted)";
+  hd.appendChild(el("div","m",`お客様番号 No.${c.no} ・ ${c.type}`)).style.cssText="font-size:12px;color:var(--muted)";
   head.appendChild(hd);
   v.appendChild(head);
 
   const info = el("div","confirm-box"); info.style.marginBottom = "20px";
-  [["次回来店",c.next],["注意事項",c.care]].forEach(([k,val])=>{
+  [["お客様番号","No."+c.no],["次回来店",c.next],["注意事項",c.care]].forEach(([k,val])=>{
     const r = el("div","row"); r.append(el("span","k",k), el("span",null,val)); info.appendChild(r);
   });
   v.appendChild(info);
