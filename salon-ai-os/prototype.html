@@ -101,10 +101,39 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .mode-switch button.on{background:var(--card); color:var(--ink); box-shadow:var(--shadow)}
 @media (max-width:560px){
   .tenant{display:none}
-  .os-bar{gap:10px}
-  .wordmark{font-size:13px}
-  .mode-switch button{padding:6px 13px; font-size:12px}
+  .os-bar{gap:8px; padding-left:12px; padding-right:12px}
+  .wordmark{font-size:12px; letter-spacing:.14em}
+  .mode-switch button{padding:6px 10px; font-size:11.5px}
 }
+
+/* ============================================================
+   導入診断LP
+   ============================================================ */
+.lp-wrap{max-width:640px; margin:0 auto; padding:clamp(28px,6vw,64px) 20px 96px}
+.lp-eyebrow{font-size:11px; letter-spacing:.24em; color:var(--accent); font-weight:600; text-align:center}
+.lp-wrap h1{
+  font-size:clamp(24px,6vw,34px); font-weight:600; letter-spacing:.06em; line-height:1.7;
+  text-align:center; margin-top:16px; text-wrap:balance;
+}
+.lp-lead{font-size:14px; color:var(--muted); text-align:center; margin-top:16px; line-height:2}
+.lp-q{margin-top:34px}
+.lp-q .qt{font-size:15px; font-weight:600; letter-spacing:.04em; margin-bottom:12px}
+.lp-q .qt .qn{color:var(--accent); margin-right:8px}
+.lp-opts{display:flex; flex-direction:column; gap:9px}
+.lp-opts button{
+  text-align:left; background:var(--card); border:1.5px solid transparent; border-radius:var(--r-sm);
+  padding:14px 18px; font-size:13.5px; box-shadow:var(--shadow); transition:all .2s ease;
+}
+.lp-opts button.sel{border-color:var(--accent); font-weight:600}
+.lp-result{
+  margin-top:40px; background:var(--card); border-radius:var(--r); box-shadow:var(--shadow-lg);
+  padding:30px 26px; text-align:center; animation:fadein .4s ease;
+}
+.lp-result .big{font-size:40px; font-weight:600; letter-spacing:.02em; color:var(--accent-deep); margin:8px 0}
+.lp-result .big small{font-size:16px; font-weight:500}
+.lp-result .sub{font-size:12.5px; color:var(--muted); line-height:1.9}
+.lp-break{text-align:left; margin-top:20px}
+.lp-foot{font-size:10.5px; color:var(--faint); text-align:center; margin-top:26px; line-height:1.8}
 
 /* ============================================================
    Customer app — phone frame
@@ -446,6 +475,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   <div class="mode-switch" role="tablist" aria-label="画面切替">
     <button id="modeCustomer" class="on" onclick="setMode('customer')">お客様画面</button>
     <button id="modeAdmin" onclick="setMode('admin')">管理画面</button>
+    <button id="modeLp" onclick="setMode('lp')">導入診断</button>
   </div>
 </div>
 
@@ -713,6 +743,17 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
     <section class="a-scr" id="a-crm">
       <div class="a-head-row"><div><h1 class="a-title">AI顧客管理 <span class="phase-pill p2">PHASE 2</span></h1>
       <p class="a-sub">カルテ・来店履歴・次回目安を一元管理。AIがフォローのタイミングを提案します。</p></div></div>
+      <div class="card">
+        <h3>🎤 音声カルテ入力 <span class="phase-pill">NEW</span></h3>
+        <p class="hint">施術後に30秒話すだけ。AIが内容を聞き取り、カルテの形に整えて保存します。</p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px">
+          <button class="btn-save" id="micBtn" onclick="vkMic()">🎤 話して入力（デモ音声）</button>
+        </div>
+        <div class="field"><label>聞き取った内容（編集できます）</label>
+          <textarea id="vkText" placeholder="例：佐藤様、今日は乾燥が強め。圧は弱めで実施。保湿ローションをおすすめした。"></textarea></div>
+        <button class="btn-sub" onclick="vkFormat()">AIがカルテに整形する</button>
+        <div id="vkPreview" style="margin-top:16px"></div>
+      </div>
       <div class="card" id="custList">
         <h3>顧客一覧</h3>
         <button class="cust-row" onclick="openKarte(0)"><span class="avatar">佐</span><span><span class="n">佐藤 美咲 様</span><span class="tag warn">フォロー推奨</span><br><span class="m">No.0001 ・ フェイシャル会員 ・ 来店12回</span></span><span class="last">前回来店<br>6週間前</span></button>
@@ -766,6 +807,45 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   <button data-a="a-crm"><span class="ic">🗂</span>顧客</button>
   <button data-a="a-edu"><span class="ic">🎓</span>教育</button>
 </div>
+</div>
+
+<!-- ============================================================
+     導入診断LP（サロンオーナー向け・テンプレート販売の入口）
+     ============================================================ -->
+<div class="stage" id="stageLp">
+  <div class="lp-wrap">
+    <div class="lp-eyebrow">SALON AI OS 導入診断</div>
+    <h1>あなたのサロン、<br>月に何時間「接客以外」に<br>使っていますか？</h1>
+    <p class="lp-lead">3つ答えるだけで、AIスタッフに任せられる時間の目安がわかります。<br>入力情報の登録は不要です。</p>
+
+    <div class="lp-q">
+      <div class="qt"><span class="qn">Q1</span>1日の問い合わせ・予約対応（電話・DM・LINE）は？</div>
+      <div class="lp-opts" data-q="1">
+        <button data-v="0.25">ほとんどない（数件）</button>
+        <button data-v="0.75">30分〜1時間くらい</button>
+        <button data-v="1.5">1時間以上かかる日が多い</button>
+      </div>
+    </div>
+    <div class="lp-q">
+      <div class="qt"><span class="qn">Q2</span>SNS投稿・ブログの作成に、週どのくらい使っていますか？</div>
+      <div class="lp-opts" data-q="2">
+        <button data-v="0.5">ほぼ手をつけられていない</button>
+        <button data-v="1.5">1〜2時間（もっとやりたい）</button>
+        <button data-v="4">3時間以上かけている</button>
+      </div>
+    </div>
+    <div class="lp-q">
+      <div class="qt"><span class="qn">Q3</span>営業時間外や施術中の問い合わせを逃したことは？</div>
+      <div class="lp-opts" data-q="3">
+        <button data-v="0">ほとんどない</button>
+        <button data-v="2">たまにある</button>
+        <button data-v="5">よくある（気づくと深夜のDMが…）</button>
+      </div>
+    </div>
+
+    <div id="lpResult"></div>
+    <p class="lp-foot">※ 本診断はデモの簡易試算です。実際の削減時間はサロンの状況により異なります。<br>Powered by Salon AI OS</p>
+  </div>
 </div>
 
 <div class="toast" id="toast" role="status"></div>
@@ -826,10 +906,10 @@ const yen = n => "¥" + n.toLocaleString("ja-JP");
    OS chrome
    ============================================================ */
 function setMode(m){
-  document.getElementById("stageCustomer").classList.toggle("on", m==="customer");
-  document.getElementById("stageAdmin").classList.toggle("on", m==="admin");
-  document.getElementById("modeCustomer").classList.toggle("on", m==="customer");
-  document.getElementById("modeAdmin").classList.toggle("on", m==="admin");
+  const stages = { customer:"stageCustomer", admin:"stageAdmin", lp:"stageLp" };
+  const btns = { customer:"modeCustomer", admin:"modeAdmin", lp:"modeLp" };
+  Object.entries(stages).forEach(([k,id])=>document.getElementById(id).classList.toggle("on", k===m));
+  Object.entries(btns).forEach(([k,id])=>document.getElementById(id).classList.toggle("on", k===m));
   window.scrollTo({top:0});
 }
 let toastTimer;
@@ -1011,6 +1091,12 @@ function counselResult(){
    ============================================================ */
 let book = { step:1 };
 const DAYS = ["日","月","火","水","木","金","土"];
+/* 会員番号 → 顧客情報（本番ではcustomerテーブルを照合） */
+const MEMBERS = {
+  "0001": { name:"佐藤 美咲", menu:1, lastVisit:"6月12日" },
+  "0038": { name:"田中 恵子", menu:0, lastVisit:"7月10日" },
+  "0012": { name:"山本 由紀", menu:1, lastVisit:"7月3日" },
+};
 
 function openBooking(preMenu){
   book = { step:1, menu: typeof preMenu==="number" ? preMenu : null };
@@ -1027,7 +1113,50 @@ function renderBookStep1(){
   book.step = 1; bookLabel();
   const b = document.getElementById("bookBody");
   b.innerHTML = "";
-  b.append(el("div","step-q","メニューをお選びください"));
+
+  /* 会員のおかえりなさい導線 */
+  const mcard = el("div","result-card");
+  mcard.style.marginTop = "4px";
+  mcard.appendChild(el("h3",null,"会員の方はこちら"));
+  const mf = el("div","field");
+  mf.style.marginBottom = "0";
+  const ml = el("label",null,"お客様番号を入力（任意）");
+  const mi = el("input");
+  mi.placeholder = "例：0012"; mi.inputMode = "numeric"; mi.maxLength = 4;
+  mi.value = book.custNo || "";
+  mf.append(ml, mi);
+  mcard.appendChild(mf);
+  const welcome = el("div");
+  mcard.appendChild(welcome);
+  b.appendChild(mcard);
+
+  const checkMember = ()=>{
+    welcome.innerHTML = "";
+    const no = mi.value.trim();
+    const mem = MEMBERS[no];
+    if(mem){
+      book.custNo = no; book.custName = mem.name;
+      const w = el("p");
+      w.style.cssText = "font-size:13.5px; margin-top:12px; line-height:1.8";
+      w.innerHTML = `おかえりなさいませ、<strong>${mem.name} 様</strong> 🌿<br><span style="font-size:12px;color:var(--muted)">前回のご来店：${mem.lastVisit} ・ ${K.menus[mem.menu].name}</span>`;
+      welcome.appendChild(w);
+      const rb = el("button","btn-ghost","前回と同じメニューで日時を選ぶ →");
+      rb.style.marginTop = "10px";
+      rb.onclick = ()=>{ book.menu = mem.menu; book.step = 2; renderBookStep2(); };
+      welcome.appendChild(rb);
+    } else if(no.length >= 4){
+      book.custNo = no; book.custName = null;
+      welcome.appendChild(el("p","step-note","この番号は見つかりませんでした。そのままお進みいただけます。\n（デモ用番号：0001 / 0012 / 0038）"));
+    } else {
+      book.custName = null;
+    }
+  };
+  mi.addEventListener("input", checkMember);
+  checkMember();
+
+  const q = el("div","step-q","メニューをお選びください");
+  q.style.marginTop = "24px";
+  b.appendChild(q);
   const g = el("div","opt-list");
   K.menus.forEach((m,i)=>{
     const btn = el("button");
@@ -1078,26 +1207,36 @@ function renderBookStep3(){
   const m = K.menus[book.menu];
   const b = document.getElementById("bookBody");
   b.innerHTML = "";
-  b.append(el("div","step-q","この内容でご予約します"));
+  b.append(el("div","step-q", book.custName ? `${book.custName} 様、この内容でご予約します` : "この内容でご予約します"));
   const box = el("div","confirm-box");
-  [["メニュー", m.name],["日時", `${book.date} ${book.time}〜`],["所要時間", `約${m.min}分`],["料金", yen(m.price)]].forEach(([k,v])=>{
+  const rows = [["メニュー", m.name],["日時", `${book.date} ${book.time}〜`],["所要時間", `約${m.min}分`],["料金", yen(m.price)]];
+  if(book.custName) rows.unshift(["お客様", `${book.custName} 様（No.${book.custNo}）`]);
+  rows.forEach(([k,v])=>{
     const r = el("div","row"); r.append(el("span","k",k), el("span","num",v)); box.appendChild(r);
   });
   b.appendChild(box);
-  const f = el("div","field");
-  f.style.marginTop = "16px";
-  const lb = el("label",null,"お客様番号（会員の方・任意）");
-  const inp = el("input");
-  inp.id = "bookCustNo"; inp.placeholder = "例：0012"; inp.inputMode = "numeric";
-  inp.value = book.custNo || "";
-  f.append(lb, inp);
-  b.appendChild(f);
-  b.appendChild(el("p","step-note","番号がわからない場合は空欄のままで大丈夫です。\n※ デモのため、お名前・連絡先の入力は省略しています"));
+  let inp = null;
+  if(!book.custName){
+    const f = el("div","field");
+    f.style.marginTop = "16px";
+    const lb = el("label",null,"お客様番号（会員の方・任意）");
+    inp = el("input");
+    inp.id = "bookCustNo"; inp.placeholder = "例：0012"; inp.inputMode = "numeric";
+    inp.value = book.custNo || "";
+    f.append(lb, inp);
+    b.appendChild(f);
+    b.appendChild(el("p","step-note","番号がわからない場合は空欄のままで大丈夫です。\n※ デモのため、お名前・連絡先の入力は省略しています"));
+  }
   const cta = el("div","cta-col");
   const b1 = el("button","btn-primary","予約を確定する");
   b1.onclick = ()=>{
-    book.custNo = inp.value.trim();
-    const noLine = book.custNo ? `\nお客様番号：${book.custNo}` : "";
+    if(inp){
+      book.custNo = inp.value.trim();
+      const mem = MEMBERS[book.custNo];
+      if(mem) book.custName = mem.name;
+    }
+    const noLine = book.custName ? `\n${book.custName} 様（No.${book.custNo}）`
+                 : book.custNo ? `\nお客様番号：${book.custNo}` : "";
     document.getElementById("doneDetail").textContent = `${m.name}\n${book.date} ${book.time}〜${noLine}`;
     goC("c-done");
   };
@@ -1273,6 +1412,61 @@ function openKarte(i){
   v.appendChild(aiNote);
 }
 
+/* --- 音声カルテ（デモ） --- */
+const VK_SAMPLE = "佐藤様、今日はフェイシャル会員コース。乾燥がかなり強めだったので圧は弱めで実施。目元を重点的に保湿。保湿ローションをおすすめして、次回は4週間後を提案済み。";
+let vkTyping = false;
+function vkMic(){
+  if(vkTyping) return;
+  const ta = document.getElementById("vkText");
+  const btn = document.getElementById("micBtn");
+  ta.value = ""; vkTyping = true;
+  btn.textContent = "🔴 聞き取り中…";
+  let i = 0;
+  const tick = setInterval(()=>{
+    ta.value = VK_SAMPLE.slice(0, i += 2);
+    if(i >= VK_SAMPLE.length){
+      clearInterval(tick); vkTyping = false;
+      btn.textContent = "🎤 話して入力（デモ音声）";
+      toast("聞き取りが完了しました。内容を確認して整形してください");
+    }
+  }, 45);
+}
+function vkFormat(){
+  const text = document.getElementById("vkText").value.trim();
+  if(!text){ toast("先に音声入力するか、内容を入力してください"); return; }
+  // 本番ではLLMが構造化。デモは簡易ルールで抽出
+  const custIdx = text.includes("田中") ? 1 : text.includes("山本") ? 2 : 0;
+  const cust = CUSTOMERS[custIdx];
+  const menuIdx = /ビジター/.test(text) ? 0 : /体験|カウンセリング|初回/.test(text) ? 2 : 1;
+  const prod = /美容液/.test(text) ? K.products[1].name : /ローション/.test(text) ? K.products[0].name : null;
+  const next = (text.match(/([0-9０-９]+)\s*週間後/) || [])[1];
+  const pv = document.getElementById("vkPreview");
+  pv.innerHTML = "";
+  pv.appendChild(el("p","hint","AIが整形しました。確認して保存してください。"));
+  const box = el("div","confirm-box");
+  const rows = [
+    ["お客様", `${cust.name}（No.${cust.no}）`],
+    ["施術", K.menus[menuIdx].name],
+    ["メモ", text],
+  ];
+  if(prod) rows.push(["おすすめ商品", prod]);
+  if(next) rows.push(["次回目安", `${next}週間後`]);
+  rows.forEach(([k,v])=>{
+    const r = el("div","row"); r.append(el("span","k",k), el("span",null,v)); box.appendChild(r);
+  });
+  pv.appendChild(box);
+  const save = el("button","btn-save","カルテに保存する");
+  save.style.marginTop = "14px";
+  save.onclick = ()=>{
+    const today = new Date();
+    cust.history.unshift({ d:`${today.getMonth()+1}月${today.getDate()}日`, w:K.menus[menuIdx].name, n:text });
+    pv.innerHTML = ""; document.getElementById("vkText").value = "";
+    toast(`${cust.name}のカルテに保存しました 🌿`);
+    openKarte(custIdx);
+  };
+  pv.appendChild(save);
+}
+
 /* --- 教育：クイズ --- */
 const QUIZ = [
   { q:"当日キャンセルのキャンセル料は？", opts:["無料","施術料の50%","全額"], ans:1 },
@@ -1312,6 +1506,45 @@ function renderQuiz(){
     opts.appendChild(btn);
   });
   b.appendChild(opts);
+}
+
+/* --- 導入診断LP --- */
+const lpAns = {};
+document.querySelectorAll(".lp-opts").forEach(group=>{
+  group.querySelectorAll("button").forEach(btn=>{
+    btn.onclick = ()=>{
+      group.querySelectorAll("button").forEach(x=>x.classList.remove("sel"));
+      btn.classList.add("sel");
+      lpAns[group.dataset.q] = parseFloat(btn.dataset.v);
+      lpRender();
+    };
+  });
+});
+function lpRender(){
+  const box = document.getElementById("lpResult");
+  if(Object.keys(lpAns).length < 3){ box.innerHTML = ""; return; }
+  // Q1: 日次対応 × 26営業日 × 7割をAIが代行 / Q2: 週次SNS × 4.3週 × 8割 / Q3: 機会損失（件/月）
+  const inquiry = Math.round(lpAns["1"] * 26 * 0.7);
+  const sns = Math.round(lpAns["2"] * 4.3 * 0.8);
+  const total = inquiry + sns;
+  const money = (total * 2000).toLocaleString("ja-JP");
+  const lost = lpAns["3"];
+  box.innerHTML = `
+    <div class="lp-result">
+      <div class="sub">AIスタッフに任せられる時間の目安</div>
+      <div class="big num">月 約${total}<small> 時間</small></div>
+      <div class="sub">時給2,000円換算で <strong class="num">約¥${money}/月</strong> 分の働きです</div>
+      <div class="confirm-box lp-break">
+        <div class="row"><span class="k">問い合わせ・予約対応</span><span class="num">約${inquiry}時間 → AI受付が24時間代行</span></div>
+        <div class="row"><span class="k">SNS・ブログ作成</span><span class="num">約${sns}時間 → AIマーケが下書きを作成</span></div>
+        ${lost ? `<div class="row"><span class="k">逃していた問い合わせ</span><span>月${lost}件前後 → 深夜もAIが応対し予約へ</span></div>` : ""}
+      </div>
+      <div class="cta-col">
+        <button class="btn-primary" onclick="setMode('customer');goC('c-home')">AIスタッフのデモを体験する</button>
+        <button class="btn-primary btn-line" onclick="lineCta()">LINEで導入相談（無料）</button>
+      </div>
+    </div>`;
+  box.scrollIntoView({behavior:"smooth", block:"nearest"});
 }
 
 /* init */
